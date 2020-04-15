@@ -1,0 +1,6 @@
+# ignore build outputs
+build/
+# ignore tools
+tools/
+# ignore generated docs
+docs/generated/

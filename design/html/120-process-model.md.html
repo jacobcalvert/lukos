@@ -1,0 +1,153 @@
+<html><style>
+:root {
+  --link-color: #01ff70;
+  --link-hover-color: #2ecc40;
+}
+
+@import "furtive-code";
+@import "furtive-print";
+@import "furtive-links";
+@import "furtive-typescale";
+@import "furtive-responsive-utils";
+
+html,
+body {
+  background-color: #222;
+  min-height: 100%;
+}
+
+html {
+  font-size: 18px;
+}
+
+a {
+	color: #c0c0c0;
+}
+
+body {
+  color: #fafafa;
+  font-family: "Courier New";
+  line-height: 1.45;
+  margin: 6rem auto 1rem;
+  padding: .25rem;
+}
+
+pre {
+  background-color: #333;
+}
+
+blockquote {
+  border-left: 3px solid var(--link-color);
+  padding-left: 1rem;
+}
+
+table {
+  border: 2px solid #000000;
+  background-color: #4A4A4A;
+  width: 100%;
+  height: 200px;
+  text-align: center;
+  border-collapse: collapse;
+}
+table td, table th {
+  border: 1px solid #4A4A4A;
+  padding: 3px 2px;
+}
+table tbody td {
+  font-size: 13px;
+  color: #E6E6E6;
+}
+table tr:nth-child(even) {
+  background: #888888;
+}
+table thead {
+  background: #000000;
+  border-bottom: 3px solid #000000;
+}
+table thead th {
+  font-size: 15px;
+  font-weight: bold;
+  color: #E6E6E6;
+  text-align: center;
+  border-left: 2px solid #4A4A4A;
+}
+table thead th:first-child {
+  border-left: none;
+}
+
+table tfoot {
+  font-size: 12px;
+  font-weight: bold;
+  color: #E6E6E6;
+  background: #000000;
+  background: -moz-linear-gradient(top, #404040 0%, #191919 66%, #000000 100%);
+  background: -webkit-linear-gradient(top, #404040 0%, #191919 66%, #000000 100%);
+  background: linear-gradient(to bottom, #404040 0%, #191919 66%, #000000 100%);
+  border-top: 1px solid #4A4A4A;
+}
+table tfoot td {
+  font-size: 12px;
+}
+
+</style>
+<h1> Table of Contents </h1>
+<ul>
+  <li><a href="#lukos-kernel-functions-process-management">LuKOS Kernel Functions - Process Management</a>
+  <ul>
+    <li><a href="#process-model">Process Model</a>
+    <ul>
+      <li><a href="#process-creationdeletion">Process Creation/Deletion</a></li>
+    </ul></li>
+    <li><a href="#process-management">Process Management</a>
+    <ul>
+      <li><a href="#kernel-calls">Kernel Calls</a></li>
+    </ul></li>
+    <li><a href="#thread-management">Thread Management</a>
+    <ul>
+      <li><a href="#kernel-calls-2">Kernel Calls</a></li>
+    </ul></li>
+  </ul></li>
+</ul>
+
+<h1 id="lukos-kernel-functions-process-management">LuKOS Kernel Functions - Process Management</h1>
+
+<p>The process management model defines what a process is, and how it interacts with the kernel. This process manager is implemented as a Process Manager (PM).</p>
+
+<h2 id="process-model">Process Model</h2>
+
+<p>A process is simply a single thread or collection of threads sharing an address space. The individual threads in a process will be scheduled according to the currently implemented scheduler policy regardless of process relation. </p>
+
+<h3 id="process-creationdeletion">Process Creation/Deletion</h3>
+
+<p>Processes can be spawned from the root process on system startup, and from other running processes. Additional threads of execution in the same process can be spawned from the initial thread in the process. A process can only delete itself in userland, but the kernel can kill a process (if it is behaving badly). If all threads in a process are deleted, the kernel will remove the process identifier as well. </p>
+
+<h2 id="process-management">Process Management</h2>
+
+<h3 id="kernel-calls">Kernel Calls</h3>
+
+<pre><code>/**
+ * create a new process
+ */ 
+process_t pm_process_create(thread_func_t entry, size_t stack_size);
+
+/**
+ * delete this process, removes all threads associated with this process
+ */
+ void pm_process_delete(void);
+</code></pre>
+
+<h2 id="thread-management">Thread Management</h2>
+
+<h3 id="kernel-calls-2">Kernel Calls</h3>
+
+<pre><code>/**
+ * create a new thread in the current process
+ */
+ thread_t pm_thread_create(thread_func_t entry, size_t stack_size, void *arg);
+
+/**
+ * deletes a given thread in this process
+ */
+void pm_thread_delete(thread_t thread, int *rc);
+</code></pre>
+</html>

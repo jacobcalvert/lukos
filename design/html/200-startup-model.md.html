@@ -1,0 +1,129 @@
+<html><style>
+:root {
+  --link-color: #01ff70;
+  --link-hover-color: #2ecc40;
+}
+
+@import "furtive-code";
+@import "furtive-print";
+@import "furtive-links";
+@import "furtive-typescale";
+@import "furtive-responsive-utils";
+
+html,
+body {
+  background-color: #222;
+  min-height: 100%;
+}
+
+html {
+  font-size: 18px;
+}
+
+a {
+	color: #c0c0c0;
+}
+
+body {
+  color: #fafafa;
+  font-family: "Courier New";
+  line-height: 1.45;
+  margin: 6rem auto 1rem;
+  padding: .25rem;
+}
+
+pre {
+  background-color: #333;
+}
+
+blockquote {
+  border-left: 3px solid var(--link-color);
+  padding-left: 1rem;
+}
+
+table {
+  border: 2px solid #000000;
+  background-color: #4A4A4A;
+  width: 100%;
+  height: 200px;
+  text-align: center;
+  border-collapse: collapse;
+}
+table td, table th {
+  border: 1px solid #4A4A4A;
+  padding: 3px 2px;
+}
+table tbody td {
+  font-size: 13px;
+  color: #E6E6E6;
+}
+table tr:nth-child(even) {
+  background: #888888;
+}
+table thead {
+  background: #000000;
+  border-bottom: 3px solid #000000;
+}
+table thead th {
+  font-size: 15px;
+  font-weight: bold;
+  color: #E6E6E6;
+  text-align: center;
+  border-left: 2px solid #4A4A4A;
+}
+table thead th:first-child {
+  border-left: none;
+}
+
+table tfoot {
+  font-size: 12px;
+  font-weight: bold;
+  color: #E6E6E6;
+  background: #000000;
+  background: -moz-linear-gradient(top, #404040 0%, #191919 66%, #000000 100%);
+  background: -webkit-linear-gradient(top, #404040 0%, #191919 66%, #000000 100%);
+  background: linear-gradient(to bottom, #404040 0%, #191919 66%, #000000 100%);
+  border-top: 1px solid #4A4A4A;
+}
+table tfoot td {
+  font-size: 12px;
+}
+
+</style>
+<h1> Table of Contents </h1>
+<ul>
+  <li><a href="#lukos-startup-model">LuKOS Startup Model</a>
+  <ul>
+    <li><a href="#at-power-on">At Power-On</a></li>
+    <li><a href="#at-kernel-start">At Kernel Start</a>
+    <ul>
+      <li><a href="#kernel-entry-flow">Kernel Entry Flow</a></li>
+      <li><a href="#kernel-entry-signature">Kernel Entry Signature</a></li>
+    </ul></li>
+  </ul></li>
+</ul>
+
+<h1 id="lukos-startup-model">LuKOS Startup Model</h1>
+
+<p>The startup model is intended to generalize what is needed from a board and processor support standpoint to make the kernel work.</p>
+
+<h2 id="at-power-on">At Power-On</h2>
+
+<p>At power-on, the board and processor specific code needs to put the hardware (especially the interrupt controller and MMU) in a quiscient state so there will be no spurious interrupts and such when the kernel launches. All cores will have an initial stack, the MMU will be disabled, the interrupt controller will be disabled and interrupts will be off.</p>
+
+<p>This code will then pass control to kernel main entry.  </p>
+
+<h2 id="at-kernel-start">At Kernel Start</h2>
+
+<p>The bootup code will pass control to the kernel main entry by calling kernel_entry.</p>
+
+<h3 id="kernel-entry-flow">Kernel Entry Flow</h3>
+
+<p>The kernel_entry function will call architecture specific startup code, install handlers for exceptions/interrupts, setup interrupt controllers, MMUs and the finally run the root process with a thread for each core.</p>
+
+<h3 id="kernel-entry-signature">Kernel Entry Signature</h3>
+
+<pre><code>void kernel_entry(size_t corenum);
+
+</code></pre>
+</html>

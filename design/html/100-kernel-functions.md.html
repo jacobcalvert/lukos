@@ -1,0 +1,128 @@
+<html><style>
+:root {
+  --link-color: #01ff70;
+  --link-hover-color: #2ecc40;
+}
+
+@import "furtive-code";
+@import "furtive-print";
+@import "furtive-links";
+@import "furtive-typescale";
+@import "furtive-responsive-utils";
+
+html,
+body {
+  background-color: #222;
+  min-height: 100%;
+}
+
+html {
+  font-size: 18px;
+}
+
+a {
+	color: #c0c0c0;
+}
+
+body {
+  color: #fafafa;
+  font-family: "Courier New";
+  line-height: 1.45;
+  margin: 6rem auto 1rem;
+  padding: .25rem;
+}
+
+pre {
+  background-color: #333;
+}
+
+blockquote {
+  border-left: 3px solid var(--link-color);
+  padding-left: 1rem;
+}
+
+table {
+  border: 2px solid #000000;
+  background-color: #4A4A4A;
+  width: 100%;
+  height: 200px;
+  text-align: center;
+  border-collapse: collapse;
+}
+table td, table th {
+  border: 1px solid #4A4A4A;
+  padding: 3px 2px;
+}
+table tbody td {
+  font-size: 13px;
+  color: #E6E6E6;
+}
+table tr:nth-child(even) {
+  background: #888888;
+}
+table thead {
+  background: #000000;
+  border-bottom: 3px solid #000000;
+}
+table thead th {
+  font-size: 15px;
+  font-weight: bold;
+  color: #E6E6E6;
+  text-align: center;
+  border-left: 2px solid #4A4A4A;
+}
+table thead th:first-child {
+  border-left: none;
+}
+
+table tfoot {
+  font-size: 12px;
+  font-weight: bold;
+  color: #E6E6E6;
+  background: #000000;
+  background: -moz-linear-gradient(top, #404040 0%, #191919 66%, #000000 100%);
+  background: -webkit-linear-gradient(top, #404040 0%, #191919 66%, #000000 100%);
+  background: linear-gradient(to bottom, #404040 0%, #191919 66%, #000000 100%);
+  border-top: 1px solid #4A4A4A;
+}
+table tfoot td {
+  font-size: 12px;
+}
+
+</style>
+<h1> Table of Contents </h1>
+<ul>
+  <li><a href="#lukos-kernel-functions">LuKOS Kernel Functions</a>
+  <ul>
+    <li><a href="#primary-functions">Primary Functions</a>
+    <ul>
+      <li><a href="#process-management-pm">Process Management (PM)</a></li>
+      <li><a href="#virtual-memory-management-vmm">Virtual Memory Management (VMM)</a></li>
+      <li><a href="#inter-process-communication-ipc">Inter-Process Communication (IPC)</a></li>
+      <li><a href="#interrupt-management-im">Interrupt Management (IM)</a></li>
+    </ul></li>
+  </ul></li>
+</ul>
+
+<h1 id="lukos-kernel-functions">LuKOS Kernel Functions</h1>
+
+<p>This microkernel will provide the classic bare minimum functions of a microkernel, plus some supporting functions which will be described later. </p>
+
+<h2 id="primary-functions">Primary Functions</h2>
+
+<h3 id="process-management-pm">Process Management (PM)</h3>
+
+<p>The kernel will provide the capability to start a process in a virtual memory space and maintain the processes's threads of execution. It will also provide scheduling to these processes and threads. The kernel will provide a mechanism to duplicate processes with all their thread states. See the <a href="120-process-model.md.html">Process Management</a> section.</p>
+
+<h3 id="virtual-memory-management-vmm">Virtual Memory Management (VMM)</h3>
+
+<p>The kernel will provide the capability to map/unmap virtual memory to support processes and other services in userland. See the <a href="110-virtual-memory.md.html">Virtual Memory</a> section.</p>
+
+<h3 id="inter-process-communication-ipc">Inter-Process Communication (IPC)</h3>
+
+<p>The kernel will provide the capability to communicate between processes in different virtual memory address spaces. See the <a href="130-ipc-model.md.html">IPC Model</a> section.</p>
+
+<h3 id="interrupt-management-im">Interrupt Management (IM)</h3>
+
+<p>The kernel will provide the capability to register for, receive, acknowledge, and deliver interrupts to processes. </p>
+</html>
