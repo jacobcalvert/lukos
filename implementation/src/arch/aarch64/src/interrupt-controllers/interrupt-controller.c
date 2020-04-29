@@ -37,4 +37,13 @@ void aarch64_intc_int_complete(size_t intno)
 	}	
 }
 
+int aarch64_intc_int_enable_by_properties(void *prop, size_t pri, size_t cpuno, aarch64_int_handler handler)
+{
+	if(INTC != NULL)
+	{
+		return INTC->enable_by_dtb(INTC->context, prop, pri, cpuno, handler);
+	}
+	return -1;
+}
+
 

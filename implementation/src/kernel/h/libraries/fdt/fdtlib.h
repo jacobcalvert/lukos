@@ -93,6 +93,14 @@ int fdtlib_has_prop(char *path, char *propname);
 void *fdtlib_get_prop(char *path, char *propname);
 
 /**
+ * return the length of the propery if found
+ * @param path 		the node path
+ * @param propname	the property name
+ * @return the lenght of the property or 0 if not found
+ */
+
+size_t fdtlib_get_prop_len(char* path, char *propname);
+/**
  * convert and return a uint32_t at the given address
  * @param at	the at address
  * @return the converted value

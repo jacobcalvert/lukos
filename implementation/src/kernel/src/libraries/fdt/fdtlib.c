@@ -296,6 +296,7 @@ struct __getprophelper
 {
 	char *prop;
 	void **propaddr;
+	size_t proplen;
 };
 static int __fdtlib_has_prop_callback(char *path, void *arg, char*propname, void*propaddr, size_t proplen)
 {
@@ -303,6 +304,7 @@ static int __fdtlib_has_prop_callback(char *path, void *arg, char*propname, void
 	if(strcmp(propname, helper->prop) == 0)
 	{
 		*(helper->propaddr) = propaddr;
+		helper->proplen = proplen;
 		return 0;
 	}
 	return 1;
@@ -325,6 +327,16 @@ void *fdtlib_get_prop(char *path, char *propname)
 	helper.propaddr = &local;
 	fdtlib_get_props_by_path(path, (void* )&helper, __fdtlib_has_prop_callback);
 	return (*helper.propaddr);
+}
+
+size_t fdtlib_get_prop_len(char* path, char *propname)
+{
+	struct __getprophelper helper;
+	helper.prop = propname;
+	void *local = NULL;
+	helper.propaddr = &local;
+	fdtlib_get_props_by_path(path, (void* )&helper, __fdtlib_has_prop_callback);
+	return ((*helper.propaddr) != NULL)?helper.proplen:0;
 }
 
 uint32_t fdtlib_conv_u32(void *at)

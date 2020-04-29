@@ -28,6 +28,7 @@ static void gicv2_complete(void *ctx, size_t intno);
 static void gicv2_percore_init(void* ctx);
 static void gicv2_generate(void *ctx, size_t intno);
 static void gicv2_ipi_generate(void *ctx, size_t cpu, size_t intno);
+static int gicv2_enable_by_dtb(void *ctx, void *properties, size_t pri,  size_t cpuno, aarch64_int_handler handler);
 typedef struct __attribute__((packed))
 {
 	uint32_t CTLR;
@@ -92,7 +93,8 @@ static aarch64_intc_t GICV2_INTC_IMPL = {
 	.complete = gicv2_complete,
 	.generate = gicv2_generate,
 	.ipi_generate = gicv2_ipi_generate,
-	.init = gicv2_percore_init
+	.init = gicv2_percore_init,
+	.enable_by_dtb = gicv2_enable_by_dtb
 };
 
 static int gicv2_find_match_callback(char *path, void *arg)
@@ -260,6 +262,70 @@ int gicv2_enable(void *ctx, size_t intno, size_t cpuno, aarch64_int_handler hand
 		
 		return AARCH64_INTC_OK;
 	}
+	return AARCH64_INTC_ERROR;
+}
+
+int gicv2_enable_by_dtb(void *ctx, void *properties, size_t pri, size_t cpuno, aarch64_int_handler handler)
+{
+	
+	GIC_V2_t *GIC = (GIC_V2_t*)ctx;
+	/**
+	 * we know the properties are in triplets of u32
+	 * < spi_or_ppi   irq_no   flags >
+	 * The 3rd cell is the flags, encoded as follows:
+	 *		bits[3:0] trigger type and level flags.
+	 *				1 = low-to-high edge triggered
+	 *				2 = high-to-low edge triggered
+	 *				4 = active high level-sensitive
+	 *				8 = active low level-sensitive
+	 *			bits[15:8] PPI interrupt cpu mask.  Each bit corresponds to each of
+	 *			the 8 possible cpus attached to the GIC.  A bit set to '1' indicated
+	 *			the interrupt is wired to that CPU.  Only valid for PPI interrupts.
+	 */
+	uint32_t *props = (uint32_t*)properties;
+	size_t intno = (size_t) fdtlib_conv_u32((void*)&props[1]);
+	size_t flags = (size_t) fdtlib_conv_u32((void*)&props[2]);
+	if( fdtlib_conv_u32((void*)&props[0]) == 1) /* check if PPI or SPI */
+	{
+		intno += 16; /* PPI offset */
+		if(  ( (1 << (cpuno+8)) & flags)  == 0)
+		{
+			return AARCH64_INTC_ERROR;
+		}
+	}
+	else
+	{
+		intno += 32; /* SPI offset */
+	}
+	
+	
+	if(flags & 0x03)
+	{
+		/* edge */
+	}
+	else
+	{
+		/* level */
+	}
+	if( (intno < GIC->max_irqs) && (cpuno < GIC->max_cpus))
+	{
+		gicv2_pri_set(ctx, intno, pri);
+		uint32_t isenable_off = (intno/32);
+		uint32_t isenable_bit = BIT(intno % 32);
+		GIC->GICD->ISENABLER[isenable_off] |= isenable_bit;
+		uint32_t itargets_off = (intno/4);
+		uint32_t itargets_bit_shift = 8*(intno%4);
+		uint32_t itargets_mask = BIT(cpuno) << itargets_bit_shift;
+		
+		aarch64_exceptions_handler_register(cpuno, intno, handler);
+		GIC->GICD->ITARGETSR[itargets_off] |= itargets_mask;
+		
+	
+		GIC->GICC->CTLR |= GICC_CTLR_ENGRP0;
+		
+		return AARCH64_INTC_OK;
+	}
+	
 	return AARCH64_INTC_ERROR;
 }
 
