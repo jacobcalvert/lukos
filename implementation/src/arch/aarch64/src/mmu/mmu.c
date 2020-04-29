@@ -156,7 +156,7 @@ void aarch64_mmu_init(void)
  	size_t heap_base = ram_base_phys;
  	size_t heap_size = lma_text_base - heap_base;
  	
- 	memlib_init(&MEMLIB_IMPL_BASIC_OPS); /* init the heap */
+ 	memlib_init((memlib_ops_t*)&MEMLIB_IMPL_BASIC_OPS); /* init the heap */
  	
  	/* only fool with it if it is at least a couple pages */
  	if(heap_size > 4*PAGE_SIZE_4K)
@@ -189,6 +189,15 @@ void *aarch64_mmu_stack_create(size_t cpuno)
 	return (void*)KERNEL_STACK_BASE(cpuno);
 }
 
+void *aarch64_mmu_device_map(void *pa, size_t size)
+{
+	size_t pa_addr_offset = (size_t)pa & VIRTADDR_LOWER_MASK;
+	size_t va = (pa_addr_offset + VIRTADDR_BASE);
+	aarch64_map_space((void*)va, (void*) pa, size, (TBL_LOWER_ATTR_SH(2) | TBL_LOWER_ATTR_AF(1) | TBL_LOWER_ATTR_AP(1) | TBL_LOWER_ATTR_MAIR_IDX(MAIR_IDX_DEVICE)));
+	return (void*)va;
+	
+
+}
 
 void aarch64_map_space(void *va_start, void*pa_start, size_t len, size_t attr)
 {

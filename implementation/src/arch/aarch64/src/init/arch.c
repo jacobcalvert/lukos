@@ -2,6 +2,7 @@
 #include <libraries/mem/memlib.h>
 #include <mmu/mmu.h>
 #include <exceptions/exceptions.h>
+#include <interrupt-controllers/interrupt-controller.h>
 #include <string.h>
 
 #include <stdint.h>
@@ -16,6 +17,8 @@ static int aarch64_find_aux_cpus_callback(char *path, void *arg);
 static size_t CPU_COUNT = 1; /* we have at least one */
 static void (*aux_cpu_jump_point)(size_t cpuno) = NULL;
 static int cpu_online[16] = {0};
+void aarch64_aux_cpu_entry(size_t cpuno);
+extern aarch64_intc_t* INTC;
 
 
 static void hvc4args(uint64_t a, uint64_t b, uint64_t c, uint64_t d);
@@ -28,6 +31,7 @@ void aarch64_init(void *dtb_addr)
 	}
 	aarch64_mmu_init();
 	aarch64_exceptions_init();
+	aarch64_intc_register();
 	aarch64_init_aux_cpus();
 	aarch64_aux_cpu_entry(0);
 }
@@ -98,7 +102,7 @@ void aarch64_aux_cpu_start(size_t cpuno, size_t type)
 			ctx.ttbr1 = KERNEL_HIGH_ADDR_MAP;
 			ctx.mair = MAIR_EL1_DEFAULT;
 			ctx.tcr = TCR_EL1_DEFAULT;
-			ctx.next_vaddr = &aarch64_switch_as;
+			ctx.next_vaddr = (void*)&aarch64_switch_as;
 			register uint64_t command = 0xC4000003;
 			register uint64_t target = cpuno;
 			register uint64_t entry = (uint64_t)aarch64_v2p(KERNEL_HIGH_ADDR_MAP, &aarch64_psci_init);
@@ -128,6 +132,7 @@ void hvc4args(uint64_t a, uint64_t b, uint64_t c, uint64_t d)
 
 void aarch64_aux_cpu_entry(size_t cpuno)
 {
+	aarch64_intc_init();
 	cpu_online[cpuno] = 1;
 	while(aux_cpu_jump_point == NULL)
 	{

@@ -119,6 +119,8 @@ void *aarch64_mmu_stack_create(size_t cpuno);
 
 void *aarch64_v2p(void *table, void *va);
 
+void *aarch64_mmu_device_map(void *pa, size_t size);
+
 #endif
 
 #endif
