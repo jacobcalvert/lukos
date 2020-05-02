@@ -39,15 +39,6 @@ void *vmm_arch_get_free_va_range(void *ctx, size_t len)
 {
 	/* probe in blocks */
 	size_t page_size = PAGE_SIZE_4K;
-	if(len > PAGE_SIZE_2M)
-	{
-		page_size = PAGE_SIZE_2M;
-		
-		if(len > PAGE_SIZE_1G)
-		{
-			page_size = PAGE_SIZE_1G;
-		}
-	}
 	
 	size_t no_pages = (len/page_size);
 	if( (len % page_size) != 0)
@@ -87,17 +78,6 @@ void* vmm_arch_alloc_pa_range(size_t len)
 {
 	size_t page_size = PAGE_SIZE_4K;
 	size_t page_mask = PAGE_MASK_4K;
-	if(len > PAGE_SIZE_2M)
-	{
-		page_size = PAGE_SIZE_2M;
-		page_mask = PAGE_MASK_2M;
-		
-		if(len > PAGE_SIZE_1G)
-		{
-			page_size = PAGE_SIZE_1G;
-			page_mask = PAGE_MASK_1G;
-		}
-	}
 	
 	size_t no_pages = (len/page_size);
 	if( (len % page_size) != 0)
@@ -105,7 +85,7 @@ void* vmm_arch_alloc_pa_range(size_t len)
 		no_pages ++;
 	}
 	
-	void *pa = memlib_malloc( (no_pages+1)*page_size);
+	void *pa = memlib_malloc( (no_pages+1)*PAGE_SIZE_4K);
 	pa = (void*)UPALIGN_BY_MASK(pa, page_mask, page_size);
 	return pa;
 }
@@ -137,17 +117,6 @@ int vmm_arch_align_check(void *va, size_t len)
 {
 
 	size_t page_mask = PAGE_MASK_4K;
-	if(len > PAGE_SIZE_2M)
-	{
-
-		page_mask = PAGE_MASK_2M;
-		
-		if(len > PAGE_SIZE_1G)
-		{
-
-			page_mask = PAGE_MASK_1G;
-		}
-	}
 	
 	return IS_ALIGNED_TO(va, page_mask)?0:-1;
 

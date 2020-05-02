@@ -179,80 +179,78 @@ int aarch64_mmu_device_map(void * table, void *pa, size_t size, aarch64_table_al
 int aarch64_mmu_map_space(void *table, void *va_start, void*pa_start, size_t len, size_t attr, aarch64_table_allocator_t alloc, void *arg)
 {
 	/*
-	 * 1) figure out what page size we're going to use
+	 * 1) figure out what mix of pages will be used
 	 * 2) map it
 	 */
-	 size_t page_size = PAGE_SIZE_4K;
-	 size_t page_mask = PAGE_MASK_4K;
-	 size_t no_pages = 0;
+	 /*						1G, 2M, 4K */
+	 size_t no_pages[3] = 	{0, 0, 	0};
 	 size_t va = (size_t) va_start;
 	 size_t pa = (size_t) pa_start;
-	 
-	 if(len > PAGE_SIZE_4K)
+	 size_t local_len = len;
+	 while(local_len >= PAGE_SIZE_1G)
 	 {
-	 	if(len > PAGE_SIZE_2M)
-	 	{
-	 		page_size = PAGE_SIZE_2M;
-	 		page_mask = PAGE_MASK_2M;
-	 		
-	 		if(len > PAGE_SIZE_1G)
-	 		{
-	 		
-		 		page_size = PAGE_SIZE_1G;
-		 		page_mask = PAGE_MASK_1G;
-	 		}
-	 	
-	 	}	
+	 	local_len -= PAGE_SIZE_1G;
+	 	no_pages[0]++;
+	 }
 	 
+	 while(local_len >= PAGE_SIZE_2M )
+	 {
+	 	local_len -= PAGE_SIZE_2M;
+	 	no_pages[1]++;
+	 }
+	 
+	 while( local_len >= PAGE_SIZE_4K )
+	 {
+	 	local_len -= PAGE_SIZE_4K;
+	 	no_pages[2]++;
+	 }
+	 
+	 if(local_len != 0)
+	 {
+	 	no_pages[2]++; /* left overs */
 	 }
 	 
 	 /* check alignement */
-	 if(!IS_ALIGNED_TO(va_start, page_mask) || !IS_ALIGNED_TO(pa_start, page_mask))
+	 if(!IS_ALIGNED_TO(va_start, PAGE_MASK_4K) || !IS_ALIGNED_TO(pa_start, PAGE_MASK_4K))
 	 {
 	 	while(1); /*TODO */
 	 } 
+
 	 
-	 /* how many full pages */
-	 no_pages = (len/page_size);
-	 /* correct for partial page */
-	 if(len % page_size != 0)
+	 for(size_t i = 0; i < no_pages[0]; i++)
 	 {
-	 	no_pages++;
-	 }
-	  
-	 for(size_t page = 0; page < no_pages; page++)
-	 {
-	 	switch(page_size)
+	 	if(aarch64_mmu_map_1G(table, (void*)va,(void*)pa, attr, alloc, arg) != 0)
 	 	{
-	 		case PAGE_SIZE_4K:
-	 		{
-	 			if(aarch64_mmu_map_4K(table, (void*)(va + (page*page_size)),(void*)(pa + (page*page_size)), attr, alloc, arg) != 0)
-	 			{
-	 				while(1); /*TODO */
-	 			} 
-	 			break;
-	 		}
-	 		case PAGE_SIZE_2M:
-	 		{
-	 			if(aarch64_mmu_map_2M(table, (void*)(va + (page*page_size)),(void*)(pa + (page*page_size)), attr, alloc, arg) != 0)
-	 			{
-	 				while(1); /*TODO */
-	 			} 
-	 			break;
-	 		}
-	 		case PAGE_SIZE_1G:
-	 		{
-	 			if(aarch64_mmu_map_1G(table, (void*)(va + (page*page_size)),(void*)(pa + (page*page_size)), attr, alloc, arg) != 0)
-	 			{
-	 				while(1); /*TODO */
-	 			} 
-	 			break;
-	 		}
-	 		default: while(1); /* TODO */
+	 		while(1); /* TODO */
 	 	}
+	 	va += PAGE_SIZE_1G;
+	 	pa += PAGE_SIZE_1G;
 	 }
 	 
-	 return -1;
+	 	 
+	 for(size_t i = 0; i < no_pages[1]; i++)
+	 {
+	 	if(aarch64_mmu_map_2M(table, (void*)va,(void*)pa, attr, alloc, arg) != 0)
+	 	{
+	 		while(1); /* TODO */
+	 	}
+	 	va += PAGE_SIZE_2M;
+	 	pa += PAGE_SIZE_2M;
+	 }
+	 
+	 	 	 
+	 for(size_t i = 0; i < no_pages[2]; i++)
+	 {
+	 	if(aarch64_mmu_map_4K(table, (void*)va,(void*)pa, attr, alloc, arg) != 0)
+	 	{
+	 		while(1); /* TODO */
+	 	}
+	 	va += PAGE_SIZE_4K;
+	 	pa += PAGE_SIZE_4K;
+	 }
+	 
+
+	 return 0;
 	 
 }
 

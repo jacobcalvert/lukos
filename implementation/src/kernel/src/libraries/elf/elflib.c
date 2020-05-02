@@ -21,7 +21,7 @@ typedef struct __attribute__((packed))
 	uint8_t version;		/* should be 1 */
 	uint8_t osabi;			/* don't care */
 	uint8_t abiversion;		/* don't care for now */
-	uint8_t pad1;			/* pad */
+	uint8_t pad1[7];		/* pad */
 	uint16_t type;			/* 2 bytes, type of file */
 	uint16_t machine;		/* 2 bytes, type of machine (ARM, etc) */
 	uint32_t version1; 		/* should be 1 */
@@ -45,6 +45,9 @@ typedef struct __attribute__((packed))
 #define ELF_SECTION_TYPE_NOBITS		0x8
 
 #define ELF_SECTION_FLAG_WRITEABLE  (1<<0)
+#define ELF_SECTION_FLAG_ALLOC		(1<<1)
+#define ELF_SECTION_FLAG_EXEC		(1<<2)
+
 
 typedef struct __attribute__((packed))
 {
@@ -93,7 +96,7 @@ int elflib_binary_load(void *vakernel, address_space_t *as, void **entry)
 			if( (section->type == ELF_SECTION_TYPE_PROGBITS) || (section->type == ELF_SECTION_TYPE_NOBITS) )
 			{
 				/* we want to allocate for this section */
-				if(section->size != 0)
+				if(section->flags & ELF_SECTION_FLAG_ALLOC)
 				{
 					address_space_region_prop_t prop = AS_REGION_RX;
 					if(section->flags & ELF_SECTION_FLAG_WRITEABLE)
