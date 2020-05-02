@@ -4,7 +4,10 @@ $(BUILD_DIR)/src/arch/$(ARCH)/src/init/pe.o \
 $(BUILD_DIR)/src/arch/$(ARCH)/src/exceptions/stubs.o \
 $(BUILD_DIR)/src/arch/$(ARCH)/src/exceptions/exceptions.o \
 $(BUILD_DIR)/src/arch/$(ARCH)/src/interrupt-controllers/interrupt-controller.o \
-$(BUILD_DIR)/src/arch/$(ARCH)/src/interrupt-controllers/gicv2.o
+$(BUILD_DIR)/src/arch/$(ARCH)/src/interrupt-controllers/gicv2.o \
+$(BUILD_DIR)/src/arch/$(ARCH)/src/managers/vmm_arch.o \
+$(BUILD_DIR)/src/arch/$(ARCH)/src/managers/pm_arch.o 
+
 
 
 

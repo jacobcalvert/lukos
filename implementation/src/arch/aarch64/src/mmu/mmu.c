@@ -25,20 +25,6 @@ void *KERNEL_LOW_ADDR_MAP = NULL;
 void *KERNEL_HIGH_ADDR_MAP = NULL;
 void *KERNEL_LOW_EXE_ADDR_MAP = NULL;
 
-static void aarch64_mmu_trans_table_indicies_get(void *virtaddr, size_t *l1, size_t *l2, size_t *l3);
-static void *aarch64_mmu_trans_table_get_next(uint64_t entry);
-
-static void *aarch64_mmu_allocate_kernel_table(void);
-
-static void aarch64_map_space(void *va_start, void*pa_start, size_t len, size_t attr);
-
-void *aarch64_v2p(void *table, void *va);
-
-static int aarch64_mmu_map_4K(void *table, void *va, void *pa, uint64_t attr);
-
-static int aarch64_mmu_map_2M(void *tbl, void *va, void *pa, uint64_t attr);
-
-static int aarch64_mmu_map_1G(void *tbl, void *va, void *pa, uint64_t attr);
 
 extern char __end_paddr;
 extern char __text_start_paddr;
@@ -115,40 +101,33 @@ void aarch64_mmu_init(void)
   	 KERNEL_TABLE_BASE = page_table_base_phys;
   	
   	 
-  	 KERNEL_LOW_ADDR_MAP = aarch64_mmu_allocate_kernel_table();
-   	 KERNEL_LOW_EXE_ADDR_MAP = aarch64_mmu_allocate_kernel_table();
-   	 KERNEL_HIGH_ADDR_MAP = aarch64_mmu_allocate_kernel_table();
+  	 KERNEL_LOW_ADDR_MAP = aarch64_mmu_allocate_kernel_table(NULL);
+   	 KERNEL_LOW_EXE_ADDR_MAP = aarch64_mmu_allocate_kernel_table(NULL);
+   	 KERNEL_HIGH_ADDR_MAP = aarch64_mmu_allocate_kernel_table(NULL);
    	 
    	 /* let's identity map 16G of the low addresses as R/W*/ 
-   	 for(size_t i = 0; i < 16; i++)
-   	 {
-   	 	aarch64_mmu_map_1G(KERNEL_LOW_ADDR_MAP, (void*)(i*PAGE_SIZE_1G), (void*)(i*PAGE_SIZE_1G), (TBL_LOWER_ATTR_SH(2) | TBL_LOWER_ATTR_AF(1) | TBL_LOWER_ATTR_AP(1) | TBL_LOWER_ATTR_MAIR_IDX(MAIR_IDX_RAM_NONCACHEABLE)));
-   	 }
-	/* lets create a RX mapping for secondary boot code*/
-   	 for(size_t i = 0; i < 16; i++)
-   	 {
-   	 	aarch64_mmu_map_1G(KERNEL_LOW_EXE_ADDR_MAP, (void*)(i*PAGE_SIZE_1G), (void*)(i*PAGE_SIZE_1G), (TBL_LOWER_ATTR_SH(2) | TBL_LOWER_ATTR_AF(1) | TBL_LOWER_ATTR_AP(2) | TBL_LOWER_ATTR_MAIR_IDX(MAIR_IDX_RAM_NONCACHEABLE)));
-   	 }
-
+   	 aarch64_mmu_map_space(KERNEL_LOW_ADDR_MAP, (void*)0, (void*)0, (size_t)16*PAGE_SIZE_1G, TBL_LOWER_ATTR_KERNEL_MEM_RW, aarch64_mmu_allocate_kernel_table, NULL);
+ 	/* lets create a RX mapping for secondary boot code*/
+	 aarch64_mmu_map_space(KERNEL_LOW_EXE_ADDR_MAP, (void*)0, (void*)0, (size_t)16*PAGE_SIZE_1G, TBL_LOWER_ATTR_KERNEL_MEM_RX, aarch64_mmu_allocate_kernel_table, NULL);
   	 
 	 __asm ("msr ttbr0_el1, %[KERNEL_LOW_ADDR_MAP]" : : [KERNEL_LOW_ADDR_MAP] "r" (KERNEL_LOW_ADDR_MAP));
 	 __asm ("isb");
 	 
 	 /* map our kernel spaces and current SP*/
-	 
-	aarch64_map_space((void*)vma_text_base, (void*)lma_text_base, text_size, (TBL_LOWER_ATTR_SH(2) | TBL_LOWER_ATTR_AF(1) | TBL_LOWER_ATTR_AP(2) | TBL_LOWER_ATTR_MAIR_IDX(MAIR_IDX_RAM_NONCACHEABLE)));
- 	aarch64_map_space((void*)vma_rodata_base, (void*)lma_rodata_base, rodata_size, (TBL_LOWER_ATTR_SH(2) | TBL_LOWER_ATTR_AF(1) | TBL_LOWER_ATTR_AP(2) | TBL_LOWER_ATTR_MAIR_IDX(MAIR_IDX_RAM_NONCACHEABLE)));
- 	aarch64_map_space((void*)vma_data_base, (void*)lma_data_base, data_size, (TBL_LOWER_ATTR_SH(2) | TBL_LOWER_ATTR_AF(1) | TBL_LOWER_ATTR_AP(1) | TBL_LOWER_ATTR_MAIR_IDX(MAIR_IDX_RAM_NONCACHEABLE)));
- 	aarch64_map_space((void*)vma_bss_base, (void*)lma_bss_base, bss_size, (TBL_LOWER_ATTR_SH(2) | TBL_LOWER_ATTR_AF(1) | TBL_LOWER_ATTR_AP(1) | TBL_LOWER_ATTR_MAIR_IDX(MAIR_IDX_RAM_NONCACHEABLE)));
+	aarch64_mmu_map_space(KERNEL_HIGH_ADDR_MAP, (void*)vma_text_base, (void*)lma_text_base, text_size, TBL_LOWER_ATTR_KERNEL_MEM_RX, aarch64_mmu_allocate_kernel_table, NULL);
+ 	aarch64_mmu_map_space(KERNEL_HIGH_ADDR_MAP, (void*)vma_rodata_base, (void*)lma_rodata_base, rodata_size, TBL_LOWER_ATTR_KERNEL_MEM_RX, aarch64_mmu_allocate_kernel_table, NULL);
+ 	aarch64_mmu_map_space(KERNEL_HIGH_ADDR_MAP, (void*)vma_data_base, (void*)lma_data_base, data_size, TBL_LOWER_ATTR_KERNEL_MEM_RW, aarch64_mmu_allocate_kernel_table, NULL);
+ 	aarch64_mmu_map_space(KERNEL_HIGH_ADDR_MAP, (void*)vma_bss_base, (void*)lma_bss_base, bss_size, TBL_LOWER_ATTR_KERNEL_MEM_RW, aarch64_mmu_allocate_kernel_table, NULL);
+ 	
  	size_t sp = 0;
  	
  	__asm__ __volatile__("mov %0, sp" : "=r" (sp) : : );
  	void* ttbr1_el1 = 0;
 	__asm__ __volatile__("mrs %0 ,ttbr1_el1"    : "=r" (ttbr1_el1) : : );
- 	size_t sp_phys = (size_t)aarch64_v2p(ttbr1_el1, (void*)sp);
+ 	size_t sp_phys = (size_t)aarch64_mmu_v2p(ttbr1_el1, (void*)sp);
  	
  	
- 	aarch64_map_space((void*)( (size_t)sp & 0xFFFFFFFFFFFFF000 ), (void*) ( (size_t)sp_phys & 0xFFFFFFFFFFFFF000 ), PAGE_SIZE_4K, (TBL_LOWER_ATTR_SH(2) | TBL_LOWER_ATTR_AF(1) | TBL_LOWER_ATTR_AP(1) | TBL_LOWER_ATTR_MAIR_IDX(MAIR_IDX_RAM_NONCACHEABLE)));
+ 	aarch64_mmu_map_space(KERNEL_HIGH_ADDR_MAP, (void*)( (size_t)sp & 0xFFFFFFFFFFFFF000 ), (void*) ( (size_t)sp_phys & 0xFFFFFFFFFFFFF000 ), PAGE_SIZE_4K, TBL_LOWER_ATTR_KERNEL_MEM_RW, aarch64_mmu_allocate_kernel_table, NULL);
  	__asm ("msr ttbr1_el1, %[KERNEL_HIGH_ADDR_MAP]" : : [KERNEL_HIGH_ADDR_MAP] "r" (KERNEL_HIGH_ADDR_MAP));
  	__asm ("isb");	
  	
@@ -184,22 +163,20 @@ void *aarch64_mmu_stack_create(size_t cpuno)
  	void *sp_base = memlib_malloc((NUM_KERNEL_STACK_PAGES+1)*PAGE_SIZE_4K);
  	sp_base = (void*) UPALIGN_4K(sp_base);
  	
- 	aarch64_map_space((void*)KERNEL_STACK_BASE(cpuno), (void*)sp_base, (NUM_KERNEL_STACK_PAGES*PAGE_SIZE_4K), (TBL_LOWER_ATTR_SH(2) | TBL_LOWER_ATTR_AF(1) | TBL_LOWER_ATTR_AP(1) | TBL_LOWER_ATTR_MAIR_IDX(MAIR_IDX_RAM_NONCACHEABLE)));
+ 	aarch64_mmu_map_space(KERNEL_HIGH_ADDR_MAP, (void*)KERNEL_STACK_BASE(cpuno), (void*)sp_base, (NUM_KERNEL_STACK_PAGES*PAGE_SIZE_4K), TBL_LOWER_ATTR_KERNEL_MEM_RW, aarch64_mmu_allocate_kernel_table, NULL);
 
 	return (void*)KERNEL_STACK_BASE(cpuno);
 }
 
-void *aarch64_mmu_device_map(void *pa, size_t size)
+int aarch64_mmu_device_map(void * table, void *pa, size_t size, aarch64_table_allocator_t alloc, void *arg, void **vaout)
 {
 	size_t pa_addr_offset = (size_t)pa & VIRTADDR_LOWER_MASK;
 	size_t va = (pa_addr_offset + VIRTADDR_BASE);
-	aarch64_map_space((void*)va, (void*) pa, size, (TBL_LOWER_ATTR_SH(2) | TBL_LOWER_ATTR_AF(1) | TBL_LOWER_ATTR_AP(1) | TBL_LOWER_ATTR_MAIR_IDX(MAIR_IDX_DEVICE)));
-	return (void*)va;
-	
-
+	*vaout = (void*)va;
+	return aarch64_mmu_map_space(table, (void*)va, (void*) pa, (size_t)size, TBL_LOWER_ATTR_KERNEL_DEVICE, alloc, arg);
 }
 
-void aarch64_map_space(void *va_start, void*pa_start, size_t len, size_t attr)
+int aarch64_mmu_map_space(void *table, void *va_start, void*pa_start, size_t len, size_t attr, aarch64_table_allocator_t alloc, void *arg)
 {
 	/*
 	 * 1) figure out what page size we're going to use
@@ -210,7 +187,6 @@ void aarch64_map_space(void *va_start, void*pa_start, size_t len, size_t attr)
 	 size_t no_pages = 0;
 	 size_t va = (size_t) va_start;
 	 size_t pa = (size_t) pa_start;
-	 void *table = (va >= VIRTADDR_BASE)?KERNEL_HIGH_ADDR_MAP:KERNEL_LOW_ADDR_MAP;
 	 
 	 if(len > PAGE_SIZE_4K)
 	 {
@@ -250,7 +226,7 @@ void aarch64_map_space(void *va_start, void*pa_start, size_t len, size_t attr)
 	 	{
 	 		case PAGE_SIZE_4K:
 	 		{
-	 			if(aarch64_mmu_map_4K(table, (void*)(va + (page*page_size)),(void*)(pa + (page*page_size)), attr) != 0)
+	 			if(aarch64_mmu_map_4K(table, (void*)(va + (page*page_size)),(void*)(pa + (page*page_size)), attr, alloc, arg) != 0)
 	 			{
 	 				while(1); /*TODO */
 	 			} 
@@ -258,7 +234,7 @@ void aarch64_map_space(void *va_start, void*pa_start, size_t len, size_t attr)
 	 		}
 	 		case PAGE_SIZE_2M:
 	 		{
-	 			if(aarch64_mmu_map_2M(table, (void*)(va + (page*page_size)),(void*)(pa + (page*page_size)), attr) != 0)
+	 			if(aarch64_mmu_map_2M(table, (void*)(va + (page*page_size)),(void*)(pa + (page*page_size)), attr, alloc, arg) != 0)
 	 			{
 	 				while(1); /*TODO */
 	 			} 
@@ -266,7 +242,7 @@ void aarch64_map_space(void *va_start, void*pa_start, size_t len, size_t attr)
 	 		}
 	 		case PAGE_SIZE_1G:
 	 		{
-	 			if(aarch64_mmu_map_1G(table, (void*)(va + (page*page_size)),(void*)(pa + (page*page_size)), attr) != 0)
+	 			if(aarch64_mmu_map_1G(table, (void*)(va + (page*page_size)),(void*)(pa + (page*page_size)), attr, alloc, arg) != 0)
 	 			{
 	 				while(1); /*TODO */
 	 			} 
@@ -276,9 +252,11 @@ void aarch64_map_space(void *va_start, void*pa_start, size_t len, size_t attr)
 	 	}
 	 }
 	 
+	 return -1;
+	 
 }
 
-int aarch64_mmu_map_4K(void *tbl, void *va, void *pa, uint64_t attr)
+int aarch64_mmu_map_4K(void *tbl, void *va, void *pa, uint64_t attr, aarch64_table_allocator_t alloc, void *arg)
 {
 	size_t L1_INDEX, L2_INDEX, L3_INDEX;
 	aarch64_mmu_trans_table_indicies_get(va, &L1_INDEX, &L2_INDEX, &L3_INDEX);
@@ -315,20 +293,20 @@ int aarch64_mmu_map_4K(void *tbl, void *va, void *pa, uint64_t attr)
 		else
 		{
 			/* make L2 Table */
-			void *newtable = (uint64_t*)aarch64_mmu_allocate_kernel_table();
+			void *newtable = (uint64_t*)alloc(arg);
 			entry =  (uint64_t)newtable | TBL_TYPE_TABLE_DESC;
 			table[L2_INDEX] = entry;
-			return aarch64_mmu_map_4K(tbl, va, pa, attr);
+			return aarch64_mmu_map_4K(tbl, va, pa, attr, alloc, arg);
 		}
 		
 	}
 	else
 	{
 		/* make L1 Table */
-		void *newtable = (uint64_t*)aarch64_mmu_allocate_kernel_table();
+		void *newtable = (uint64_t*)alloc(arg);
 		entry =  (uint64_t)newtable | TBL_TYPE_TABLE_DESC;
 		table[L1_INDEX] = entry;
-		return aarch64_mmu_map_4K(tbl, va, pa, attr);
+		return aarch64_mmu_map_4K(tbl, va, pa, attr, alloc, arg);
 	}
 	
 	
@@ -336,7 +314,7 @@ int aarch64_mmu_map_4K(void *tbl, void *va, void *pa, uint64_t attr)
 	
 }
 
-int aarch64_mmu_map_2M(void *tbl, void *va, void *pa, uint64_t attr)
+int aarch64_mmu_map_2M(void *tbl, void *va, void *pa, uint64_t attr, aarch64_table_allocator_t alloc, void *arg)
 {
 	size_t L1_INDEX, L2_INDEX, L3_INDEX;
 	aarch64_mmu_trans_table_indicies_get(va, &L1_INDEX, &L2_INDEX, &L3_INDEX);
@@ -370,10 +348,10 @@ int aarch64_mmu_map_2M(void *tbl, void *va, void *pa, uint64_t attr)
 	else
 	{
 		/* make L1 Table */
-		void *newtable = (uint64_t*)aarch64_mmu_allocate_kernel_table();
+		void *newtable = (uint64_t*)alloc(arg);
 		entry =  (uint64_t)newtable | TBL_TYPE_TABLE_DESC;
 		table[L1_INDEX] = entry;
-		return aarch64_mmu_map_2M(tbl, va, pa, attr);
+		return aarch64_mmu_map_2M(tbl, va, pa, attr, alloc, arg);
 	}
 	
 	
@@ -381,7 +359,7 @@ int aarch64_mmu_map_2M(void *tbl, void *va, void *pa, uint64_t attr)
 	
 }
 
-int aarch64_mmu_map_1G(void *tbl, void *va, void *pa, uint64_t attr)
+int aarch64_mmu_map_1G(void *tbl, void *va, void *pa, uint64_t attr, aarch64_table_allocator_t alloc, void *arg)
 {
 	size_t L1_INDEX, L2_INDEX, L3_INDEX;
 	aarch64_mmu_trans_table_indicies_get(va, &L1_INDEX, &L2_INDEX, &L3_INDEX);
@@ -421,7 +399,7 @@ void *aarch64_mmu_trans_table_get_next(uint64_t entry)
 	
 	return next;
 }
-void *aarch64_mmu_allocate_kernel_table(void)
+void *aarch64_mmu_allocate_kernel_table(void * arg)
 {
 	void *next = (void*)UPALIGN_4K(KERNEL_TABLE_BASE);
 	KERNEL_TABLE_BASE += 0x1000;
@@ -446,7 +424,7 @@ int fdt_memory_node_finder_cb(char *path, void *arg)
 	return 0; 
 }
 
-void *aarch64_v2p(void *pTable, void *va)
+void *aarch64_mmu_v2p(void *pTable, void *va)
 {
 	void *pa = NULL;
 	size_t l1, l2, l3;

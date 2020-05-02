@@ -160,8 +160,16 @@ static int gicv2_find_match_callback(char *path, void *arg)
 			size_gicc = (uint64_t)fdtlib_conv_u32(prop_addr);
 		}
 		
-		gic->GICD = (volatile GICD_t *)aarch64_mmu_device_map( (void*)gic->GICD, size_gicd);
-		gic->GICC = (volatile GICC_t *)aarch64_mmu_device_map( (void*)gic->GICC, size_gicc);
+		if(aarch64_mmu_device_map(KERNEL_HIGH_ADDR_MAP, (void*)gic->GICD, size_gicd, aarch64_mmu_allocate_kernel_table, NULL, (void**)&gic->GICD) != 0)
+		{
+		
+		}
+		
+		if(aarch64_mmu_device_map(KERNEL_HIGH_ADDR_MAP, (void*)gic->GICC, size_gicc, aarch64_mmu_allocate_kernel_table, NULL, (void**)&gic->GICC) != 0)
+		{
+		
+		}
+
 		
 		gic->max_irqs = (32*((gic->GICD->TYPER & GICD_TYPER_ITLINES_MASK) +1));
 		gic->max_cpus = (1 + ((gic->GICD->TYPER & GICD_TYPER_CPUNUM_MASK)>>GICD_TYPER_CPUNUM_SHIFT));

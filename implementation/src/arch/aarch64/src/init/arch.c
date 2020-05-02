@@ -1,9 +1,11 @@
 #include <libraries/fdt/fdtlib.h>
 #include <libraries/mem/memlib.h>
+#include <libraries/elf/elflib.h>
 #include <mmu/mmu.h>
 #include <exceptions/exceptions.h>
 #include <interrupt-controllers/interrupt-controller.h>
 #include <interfaces/platform/platform_data.h>
+#include <managers/virtual-memory-manager.h>
 #include <string.h>
 
 #include <stdint.h>
@@ -37,6 +39,7 @@ void aarch64_init(void *dtb_addr)
 	aarch64_exceptions_init();
 	aarch64_intc_register();
 	aarch64_init_aux_cpus();
+	vmm_init();
 	aarch64_aux_cpu_entry(0);
 }
 
@@ -109,8 +112,8 @@ void aarch64_aux_cpu_start(size_t cpuno, size_t type)
 			ctx.next_vaddr = (void*)&aarch64_switch_as;
 			register uint64_t command = 0xC4000003;
 			register uint64_t target = cpuno;
-			register uint64_t entry = (uint64_t)aarch64_v2p(KERNEL_HIGH_ADDR_MAP, &aarch64_psci_init);
-			register uint64_t context = (uint64_t)aarch64_v2p(KERNEL_HIGH_ADDR_MAP, &ctx);
+			register uint64_t entry = (uint64_t)aarch64_mmu_v2p(KERNEL_HIGH_ADDR_MAP, &aarch64_psci_init);
+			register uint64_t context = (uint64_t)aarch64_mmu_v2p(KERNEL_HIGH_ADDR_MAP, &ctx);
 			
 			hvc4args(command, target, entry, context);
 			
@@ -151,12 +154,22 @@ void aarch64_aux_cpu_entry(size_t cpuno)
 	HACKHACKHACK
 	
 	*****/
+	extern char __app;
+	elflib_init();
+	address_space_t *as = vmm_address_space_create();
+	void *entry;
+	elflib_binary_load(&__app, as, &entry);
 	
+
 	cpu_online[cpuno] = 1;
 	aarch64_core_timer_init(cpuno);
+	memlib_stats_t stats;
 	while(aux_cpu_jump_point == NULL)
 	{
-	
+		if(cpuno == 0)
+		{
+			memlib_stats_get(&stats);
+		}	
 		uint64_t current;
 		uint64_t comp;
 		uint64_t enable;

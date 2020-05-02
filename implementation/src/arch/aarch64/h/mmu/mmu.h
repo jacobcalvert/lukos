@@ -31,6 +31,13 @@
 #define TBL_LOWER_ATTR_AF(n)        ((uint64_t)(n)<<10)
 
 
+#define TBL_LOWER_ATTR_KERNEL_MEM_RW	(TBL_LOWER_ATTR_SH(2) | TBL_LOWER_ATTR_AF(1) | TBL_LOWER_ATTR_AP(0) | TBL_LOWER_ATTR_MAIR_IDX(MAIR_IDX_RAM_NONCACHEABLE))
+#define TBL_LOWER_ATTR_KERNEL_MEM_RX	(TBL_LOWER_ATTR_SH(2) | TBL_LOWER_ATTR_AF(1) | TBL_LOWER_ATTR_AP(2) | TBL_LOWER_ATTR_MAIR_IDX(MAIR_IDX_RAM_NONCACHEABLE))
+#define TBL_LOWER_ATTR_USER_MEM_RW		(TBL_LOWER_ATTR_SH(2) | TBL_LOWER_ATTR_AF(1) | TBL_LOWER_ATTR_AP(1) | TBL_LOWER_ATTR_MAIR_IDX(MAIR_IDX_RAM_NONCACHEABLE))	
+#define TBL_LOWER_ATTR_USER_MEM_RX		(TBL_LOWER_ATTR_SH(2) | TBL_LOWER_ATTR_AF(1) | TBL_LOWER_ATTR_AP(3) | TBL_LOWER_ATTR_MAIR_IDX(MAIR_IDX_RAM_NONCACHEABLE))		
+#define TBL_LOWER_ATTR_KERNEL_DEVICE	(TBL_LOWER_ATTR_SH(2) | TBL_LOWER_ATTR_AF(1) | TBL_LOWER_ATTR_AP(0) | TBL_LOWER_ATTR_MAIR_IDX(MAIR_IDX_DEVICE))
+#define TBL_LOWER_ATTR_USER_DEVICE		(TBL_LOWER_ATTR_SH(2) | TBL_LOWER_ATTR_AF(1) | TBL_LOWER_ATTR_AP(0) | TBL_LOWER_ATTR_MAIR_IDX(MAIR_IDX_DEVICE))
+
 #define TBL_UPPER_ATTR_PXN(n)       ((uint64_t)(n)<<53)
 #define TBL_UPPER_ATTR_UXN(n)       ((uint64_t)(n)<<54) 
 #define TBL_UPPER_ATTR_SWRESV(n)    ((uint64_t)(n)<<55)
@@ -110,16 +117,49 @@
 
 #ifndef __ASSEMBLER__
 
+extern void *KERNEL_LOW_ADDR_MAP;
+extern void *KERNEL_LOW_EXE_ADDR_MAP;
+extern void *KERNEL_HIGH_ADDR_MAP;
+
+typedef void *(*aarch64_table_allocator_t)(void* arg);
+;
 /**
  * initialize the MMU and setup the kernel heap in virtual space
  */
 void aarch64_mmu_init(void);
 
+/**
+ * 
+ */
 void *aarch64_mmu_stack_create(size_t cpuno);
 
-void *aarch64_v2p(void *table, void *va);
+/**
+ * translate a VA to a PA with the given table
+ * @param table		the TTBRx
+ * @param va		the VA
+ * @return the PA
+ */
+void *aarch64_mmu_v2p(void *table, void *va);
 
-void *aarch64_mmu_device_map(void *pa, size_t size);
+/**
+ * map a device (auto selects the VA)
+ */
+int aarch64_mmu_device_map(void * table, void *pa, size_t size, aarch64_table_allocator_t alloc, void *arg, void **vaout);
+
+/**
+ * 
+ */
+int aarch64_mmu_map_space(void *table, void *va_start, void*pa_start, size_t len, size_t attr, aarch64_table_allocator_t alloc, void *arg);
+int aarch64_mmu_map_4K(void *table, void *va, void *pa, uint64_t attr, aarch64_table_allocator_t alloc, void *arg);
+int aarch64_mmu_map_2M(void *table, void *va, void *pa, uint64_t attr, aarch64_table_allocator_t alloc, void *arg);
+int aarch64_mmu_map_1G(void *table, void *va, void *pa, uint64_t attr, aarch64_table_allocator_t alloc, void *arg);
+
+void aarch64_mmu_trans_table_indicies_get(void *virtaddr, size_t *l1, size_t *l2, size_t *l3);
+
+void *aarch64_mmu_trans_table_get_next(uint64_t entry); 
+
+void *aarch64_mmu_allocate_kernel_table(void * arg);
+
 
 #endif
 
