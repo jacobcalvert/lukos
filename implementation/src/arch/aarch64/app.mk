@@ -1,4 +1,7 @@
 
+APP_OBJS += $(BUILD_DIR)/src/arch/$(ARCH)/src/userspace/memory.o
+
+KERNEL_INCLUDES += -I ./src/kernel/h/
 
 # a commonly used routine
 define checkdstdir

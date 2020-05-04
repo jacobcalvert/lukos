@@ -2,4 +2,4 @@
 .align 12
 .global __app
 __app:
-	.incbin "./src/platform/qemu-aarch64-virt/000-basic.elf"
+	.incbin "./src/platform/qemu-aarch64-virt/001-svc.elf"

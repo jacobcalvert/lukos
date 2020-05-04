@@ -19,7 +19,7 @@ static uint32_t CPU_WAIT_LOCK = 1;
 extern platform_data_t PLATFORM_DATA;
 static int aarch64_find_core_timers_callback(char *path, void *arg);
 static void aarch64_core_timer_init(size_t cpuno);
-static void aarch64_scheduling_interrupt(size_t cpuno, size_t intno);
+void aarch64_scheduling_interrupt(size_t cpuno, size_t intno);
 
 void aarch64_scheduling_init(size_t cpuno)
 {

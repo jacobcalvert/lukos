@@ -67,6 +67,7 @@ thread_t* pm_thread_create(char *name, process_t *prc, void *entry, int argc, ch
 	thread->stack_size = stack_size;
 	thread->parent = prc;
 	thread->affinity = PM_THREAD_AFF_NONE;
+	thread->entry = entry;
 	
 	
 	thread->name = (char*)memlib_malloc(strlen(name)+1);

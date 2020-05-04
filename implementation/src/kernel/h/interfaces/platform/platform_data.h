@@ -25,6 +25,15 @@
 #define __LUKOS_PLATFORM_DATA__
 
 #include <stdint.h>
+#include <stddef.h>
+
+typedef struct
+{
+	char *name;
+	void *phys_addr;
+	size_t len;
+
+}platform_restrict_range_t;
 
 typedef struct platform_data
 {
@@ -34,6 +43,9 @@ typedef struct platform_data
 
 	uint32_t max_cpus;			/**< number of cpus to use, if max_cpus < number in system the extras will be idled */
 	uint32_t scheduling_freq; 	/**< scheduling frequency in Hz */
+	
+	platform_restrict_range_t *restricted_ranges;	/**< MMIO restricted ranges */
+	
 	
 
 }platform_data_t;
