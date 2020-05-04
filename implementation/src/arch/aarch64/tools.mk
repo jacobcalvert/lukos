@@ -16,8 +16,14 @@ GDB=$(CROSS_COMPILE)-gdb
 
 TERMINAL=x-terminal-emulator
 
+ifdef APP_NAME
+	MAP_NAME=$(APP_NAME)
+else
+	MAP_NAME=kernel
+endif
+
 CC_OPTS= -Wall -O0 -ffreestanding -nostdlib -nostartfiles -std=c11 -g -mcpu=$(CPU)
 CXX_OPTS= $(CC_OPTS)
 AS_OPTS= -g
-LD_OPTS= $(CC_OPTS) -Wl,-Map=$(BUILD_DIR)/kernel.map -Wl,-cref  -Wl,--gc-sections -g
+LD_OPTS= $(CC_OPTS) -Wl,-Map=$(BUILD_DIR)/$(MAP_NAME).map -Wl,-cref  -Wl,--gc-sections -g
 
