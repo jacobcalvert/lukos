@@ -148,7 +148,7 @@ svc_stub:
 	
 
 irq_stub:
-	/*msr SPsel, #0*/
+	msr SPsel, #0
 	isb
 	stp x0, x1, [sp, #-16]!
 	stp x2, x3, [sp, #-16]!
@@ -186,12 +186,15 @@ irq_stub:
 	stp q28, q29, [sp, #-32]!					
 	stp q30, q31, [sp, #-32]!
 	/* we have stored off context, select SPx and handle IRQ */
-	/*msr SPsel, #1 */
+	msr SPsel, #1
+	ldr x0, =KERNEL_LOW_ADDR_MAP
+	ldr x0, [x0]
+	msr ttbr0_el1, x0
 	isb
 	mrs x0, mpidr_el1 
 	and x0, x0, #0x0FF
 	bl aarch64_exceptions_handle
-	/*msr SPsel, #0 */
+	msr SPsel, #0
 	isb
 	ldp q30, q31, [sp], #32					
 	ldp q28, q29, [sp], #32					
@@ -227,8 +230,7 @@ irq_stub:
 	ldp x6, x7, [sp], #16						
 	ldp x4, x5, [sp], #16						
 	ldp x2, x3, [sp], #16						
-	ldp x0, x1, [sp], #16
-	/*msr SPsel, #1*/				
+	ldp x0, x1, [sp], #16			
 	eret
 
 
@@ -245,7 +247,7 @@ _default_el1_vtable:
 	vtable_error_handler 		fiq_el1_spx, 	 6
 	vtable_error_handler 	serror_el1_spx, 	 7
 	vtable_error_handler 	sync_el0_a64, 		 8
-	vtable_error_handler 	irq_el0_a64, 		 9
+	vtable_irq_handler 	irq_el0_a64, 		 9, el1
 	vtable_error_handler 	fiq_el0_a64, 		10
 	vtable_error_handler 	serror_el0_a64, 	11
 	vtable_error_handler 	sync_el0_a32, 		12

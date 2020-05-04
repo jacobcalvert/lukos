@@ -22,7 +22,10 @@
  */
 
 #include <libraries/mem/memlib.h>
+#include <interfaces/os/atomic.h>
 #include <string.h>
+
+#include <stdint.h>
 
 #define NUM_HEAP_REGIONS		4
 
@@ -58,6 +61,7 @@ typedef struct
 typedef struct
 {
 	mib_heap_region_t regions[NUM_HEAP_REGIONS];
+	uint32_t lock;
 
 }mib_heap_context_t;
 
@@ -100,6 +104,8 @@ void *memlib_impl_basic_create_context(int is_global)
 		/* allocate from global heap */
 		context = (mib_heap_context_t*) memlib_malloc(sizeof(mib_heap_context_t));
 	}
+	
+	context->lock = 0;
 
 	for(int i = 0; i < NUM_HEAP_REGIONS; i++)
 	{
@@ -125,6 +131,7 @@ int memlib_impl_basic_heap_add(void* ctx, void *base, size_t n)
 	if(ctx)
 	{
 		mib_heap_context_t *context = (mib_heap_context_t*)ctx;
+		atomic32_spinlock_acquire(&context->lock);
 		for(int i = 0; i < NUM_HEAP_REGIONS; i++)
 		{
 			if(context->regions[i].base == NULL)
@@ -133,9 +140,11 @@ int memlib_impl_basic_heap_add(void* ctx, void *base, size_t n)
 				context->regions[i].free_base = base;
 				context->regions[i].len = n;
 				context->regions[i].free = n;
+				atomic32_spinlock_release(&context->lock);
 				return MEMLIB_OK;
 			}
 		}
+		atomic32_spinlock_release(&context->lock);
 		return MEMLIB_OUT_OF_MEMORY;
 	}
 	return MEMLIB_BAD_CONTEXT;
@@ -150,7 +159,7 @@ void *memlib_impl_basic_malloc(void* ctx, size_t n)
 	mib_marker_block_t *block = NULL;
 
 
-
+	atomic32_spinlock_acquire(&context->lock);
 	block = find_existing_block(context, n);
 	if(block == NULL)
 	{
@@ -161,6 +170,7 @@ void *memlib_impl_basic_malloc(void* ctx, size_t n)
 		}
 	}
 	size_t addr = ((size_t)block + MARKER_SIZE);
+	atomic32_spinlock_release(&context->lock);
 	return (block==NULL)?NULL:((void*)addr);
 }
 

@@ -1,6 +1,7 @@
 #include <managers/virtual-memory-manager.h>
 #include <libraries/mem/memlib.h>
 #include <mmu/mmu.h>
+#include <managers/vmm_arch.h>
 #include <string.h>
 
 
@@ -12,17 +13,11 @@
 
 #define UPALIGN_BY_MASK(addr, mask, size)		( ( ((uint64_t)addr & mask) == (uint64_t)addr )?(uint64_t)addr:(((uint64_t)addr & (uint64_t)mask) + (uint64_t)size))
 
-typedef struct
-{
-	uint64_t *translation_table;
-	
-	void * table_space;
-	size_t table_space_len;
-	
-}aarch64_vmm_context_t;
+
 
 
 static void* vmm_arch_next_table(void* ctx);
+
 
 
 

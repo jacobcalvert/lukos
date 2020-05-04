@@ -25,6 +25,16 @@
 
 #include <stddef.h>
 
+#define PM_THREAD_FLAGS_READY			(1<<0)
+#define PM_THREAD_FLAGS_RUNNING			(1<<1)
+#define PM_THREAD_FLAGS_RETURNED		(31<<0)
+
+
+#define PM_THREAD_AFF_NONE				(size_t)-1
+#define PM_THREAD_AFF_CORE(n)			(1<<n)
+
+struct process;
+
 typedef struct
 {
 
@@ -37,7 +47,9 @@ typedef struct
 	int argc;
 	char **argv;
 	size_t flags;
-
+	size_t affinity;
+	struct process *parent;
+	
 }thread_t;
 
 
@@ -55,20 +67,22 @@ typedef enum
 }process_scheduler_t;
 
 
-typedef struct
+typedef struct process
 {
 	char *name;
 	address_space_t *as;
 	process_scheduler_t scheduler_type;
 	size_t priority;
 	thread_list_node_t* threads;
+	uint32_t lock;
 
 }process_t;
 
 /**
  * initialize the Process Manager
+ * @param maxcpus 		the maximum number of CPUs expected in this systems
  */
-void pm_init(void);
+void pm_init(size_t maxcpus);
 
 /**
  * create a process with the given parameters but no threads and does not ready for scheduling
@@ -99,8 +113,29 @@ void pm_process_schedule(process_t *prc);
  * @param stack_size	the thread stack size
  * @param priority		the thread priority (unused in some process schedulers )
  */
-void pm_thread_create(char *name, process_t *prc, void *entry, int argc, char **argv, size_t stack_size, size_t priority);
+thread_t* pm_thread_create(char *name, process_t *prc, void *entry, int argc, char **argv, size_t stack_size, size_t priority);
 
+
+/**
+ * get the next schedulable thread for this cpu
+ * @param cpuno		the cpu number
+ * @return a pointer to the next thread
+ */
+thread_t *pm_thread_next_get(size_t cpuno);
+
+
+
+/**
+ * get current thread for this CPU
+ * @param cpuno		the cpu noumber
+ * @return a pointer to the current thread
+ */
+thread_t *pm_thread_current_get(size_t cpuno);
+
+/**
+ * set the core affinity of this thread
+ */
+void pm_thread_affinity_set(thread_t *thr, size_t aff);
 
 
 /*---------------------------------------------------------- */

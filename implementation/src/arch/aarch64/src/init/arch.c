@@ -6,6 +6,7 @@
 #include <interrupt-controllers/interrupt-controller.h>
 #include <interfaces/platform/platform_data.h>
 #include <managers/virtual-memory-manager.h>
+#include <managers/process-manager.h>
 #include <string.h>
 
 #include <stdint.h>
@@ -17,17 +18,15 @@ void aarch64_aux_cpu_entry(size_t cpuno);
 static void aarch64_init_aux_cpus(void);
 static void aarch64_aux_cpu_start(size_t cpuno, size_t type);
 static int aarch64_find_aux_cpus_callback(char *path, void *arg);
-static int aarch64_find_core_timers_callback(char *path, void *arg);
-static void aarch64_core_timer_init(size_t cpuno);
 
 static void hvc4args(uint64_t a, uint64_t b, uint64_t c, uint64_t d);
+extern platform_data_t PLATFORM_DATA;
+
+void aarch64_scheduling_init(size_t cpuno);
 
 
 static size_t CPU_COUNT = 1; /* we have at least one */
-static void (*aux_cpu_jump_point)(size_t cpuno) = NULL;
 static int cpu_online[16] = {0};
-
-extern platform_data_t PLATFORM_DATA;
 
 void aarch64_init(void *dtb_addr)
 {
@@ -40,6 +39,7 @@ void aarch64_init(void *dtb_addr)
 	aarch64_intc_register();
 	aarch64_init_aux_cpus();
 	vmm_init();
+	pm_init(PLATFORM_DATA.max_cpus);
 	aarch64_aux_cpu_entry(0);
 }
 
@@ -140,93 +140,8 @@ void hvc4args(uint64_t a, uint64_t b, uint64_t c, uint64_t d)
 void aarch64_aux_cpu_entry(size_t cpuno)
 {
 	aarch64_intc_init();
-	/*****
-	
-	HACKHACKHACK
-	
-	*****/
-	
-	void *sp0 = memlib_malloc(0x1000);
-	sp0 = (void*)((size_t)sp0 & 0xFFFFFFFFFFFFFF00);
-	__asm__ __volatile__("msr SPSel, #0\r\nmov sp, %0\r\nmsr SPSel, #1" : "=r" (sp0) : : );
-	/*****
-	
-	HACKHACKHACK
-	
-	*****/
-	extern char __app;
-	elflib_init();
-	address_space_t *as = vmm_address_space_create();
-	void *entry;
-	elflib_binary_load(&__app, as, &entry);
-	
-
 	cpu_online[cpuno] = 1;
-	aarch64_core_timer_init(cpuno);
-	memlib_stats_t stats;
-	while(aux_cpu_jump_point == NULL)
-	{
-		if(cpuno == 0)
-		{
-			memlib_stats_get(&stats);
-		}	
-		uint64_t current;
-		uint64_t comp;
-		uint64_t enable;
-		__asm__ __volatile__("mrs %0, cntpct_el0" : "=r" (current) : : );
-		__asm__ __volatile__("mrs %0, cntp_cval_el0" : "=r" (comp) : : );
-		__asm__ __volatile__("mrs %0, cntp_ctl_el0" : "=r" (enable) : : );
-	}
+	aarch64_scheduling_init(cpuno);
 
 }
-static void temp(size_t cpuno, size_t intno)
-{
-	uint64_t freq = 0;
-	uint64_t comp = 0;
-	uint64_t current = 0;
-	__asm__ __volatile__("mrs %0, cntfrq_el0" : "=r" (freq) : : );
-	comp = freq/PLATFORM_DATA.scheduling_freq;
-	__asm__ __volatile__("mrs %0, cntpct_el0" : "=r" (current) : : );
-	comp+=current;
-	__asm__ __volatile__("msr cntp_cval_el0, %0" : "=r" (comp) : : );
-}
-int aarch64_find_core_timers_callback(char *path, void *arg)
-{
-	void *intlist = fdtlib_get_prop(path, "interrupts");
-	size_t *cpuno = (size_t*)arg;
-	if(intlist)
-	{
-		/*
-		 * the interrupts are represented in an array of 4 u32s, but the array lengths can be 1 or more
-		 * each array represents the interrupt config for:
-		 * secure mode
-		 * non-secure mode (we want to use)
-		 * virtual
-		 * hypervisor
-		 * so we want to use offset 1
-		 */
-		uint64_t freq = 0;
-		uint64_t comp = 0;
-		uint64_t current = 0;
-		size_t proplen = fdtlib_get_prop_len(path, "interrupts");
-		proplen/=16; /* div4 for convert to u32 div 4 again to breakout the number of u32s in each array */
-		uint32_t *props = (uint32_t*) intlist;
-		
-		aarch64_intc_int_enable_by_properties(&props[1*proplen], 128, *cpuno, temp);
-		__asm__ __volatile__("mrs %0, cntfrq_el0" : "=r" (freq) : : );
-		comp = freq-1;
-		__asm__ __volatile__("mrs %0, cntpct_el0" : "=r" (current) : : );
-		comp+=current;
-		__asm__ __volatile__("msr cntp_cval_el0, %0" : "=r" (comp) : : );
-		__asm__ __volatile("mov x0, #1");
-		__asm__ __volatile("msr cntp_ctl_el0, x0");
-		__asm__ __volatile("msr daifclr, #7");
-		return 0;
-	}
-	return 1;
-}
-void aarch64_core_timer_init(size_t cpuno)
-{	
-		fdtlib_find_by_prop("compatible", "arm,armv8-timer", aarch64_find_core_timers_callback, &cpuno );
-		
-}
+
