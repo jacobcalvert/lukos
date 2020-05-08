@@ -15,10 +15,7 @@
 .global syscall_memory_alloc
 
 syscall_memory_alloc:
-	mov x3, x2
-	mov x2, x1
-	mov x1, x0	
-	mov x0, #SYSCALL_MEMORY_ALLOC
+	mov x0, #SYSCALL_SCHEDULING_YIELD
 	svc #0
 	ret
 

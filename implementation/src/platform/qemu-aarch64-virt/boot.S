@@ -83,9 +83,9 @@
 
 /*
  * Architectural Feature Access Control Register for EL1
- * (1<<20) => FPEN= 0b01 = El0 SIMD is trapped but not El1
+ * (1<<20) => FPEN= 0b01 = El0 SIMD not trapped
  */
-#define CPACR_EL1_DEFAULT		(1<<20)
+#define CPACR_EL1_DEFAULT		(3<<20)
 
 
 

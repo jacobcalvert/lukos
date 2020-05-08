@@ -14,7 +14,7 @@
  */
 KERNEL_SYSCALL3(syscall_memory_alloc, size_t sz, size_t flags, void **ptr);
 
-	
+
 	
 	
 #endif

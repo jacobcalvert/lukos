@@ -22,7 +22,7 @@
 
 static int gicv2_enable(void *ctx, size_t intno, size_t cpuno, aarch64_int_handler handler);
 static int gicv2_disable(void *ctx, size_t intno, size_t cpuno);
-static int gicv2_pri_set(void *ctx, size_t intno, size_t pri);
+static int gicv2_pri_set(void *ctx, size_t intno, size_t cpuno, size_t pri);
 static size_t gicv2_get(void*ctx);
 static void gicv2_complete(void *ctx, size_t intno);
 static void gicv2_percore_init(void* ctx);
@@ -317,7 +317,7 @@ int gicv2_enable_by_dtb(void *ctx, void *properties, size_t pri, size_t cpuno, a
 	}
 	if( (intno < GIC->max_irqs) && (cpuno < GIC->max_cpus))
 	{
-		gicv2_pri_set(ctx, intno, pri);
+		gicv2_pri_set(ctx, intno, cpuno, pri);
 		uint32_t isenable_off = (intno/32);
 		uint32_t isenable_bit = BIT(intno % 32);
 		GIC->GICD->ISENABLER[isenable_off] |= isenable_bit;
@@ -358,7 +358,7 @@ int gicv2_disable(void *ctx, size_t intno, size_t cpuno)
 	return AARCH64_INTC_ERROR;
 }
 
-int gicv2_pri_set(void *ctx, size_t intno, size_t pri)
+int gicv2_pri_set(void *ctx, size_t intno, size_t cpuno, size_t pri)
 {
 	GIC_V2_t *GIC = (GIC_V2_t*)ctx;
 	

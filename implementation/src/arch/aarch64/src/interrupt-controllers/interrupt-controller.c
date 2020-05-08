@@ -36,6 +36,22 @@ void aarch64_intc_int_complete(size_t intno)
 		return INTC->complete(INTC->context, intno);
 	}	
 }
+int aarch64_intc_int_pri_set(size_t irqno, size_t cpuno, size_t pri)
+{
+	if(INTC != NULL)
+	{
+		return INTC->priority_set(INTC->context, irqno, cpuno, pri);
+	}
+	return -1;
+}
+int aarch64_intc_int_enable(size_t irqno, size_t cpuno, aarch64_int_handler handler)
+{
+	if(INTC != NULL)
+	{
+		return INTC->enable(INTC->context, irqno, cpuno, handler);
+	}
+	return -1;
+}
 
 int aarch64_intc_int_enable_by_properties(void *prop, size_t pri, size_t cpuno, aarch64_int_handler handler)
 {
@@ -45,5 +61,14 @@ int aarch64_intc_int_enable_by_properties(void *prop, size_t pri, size_t cpuno, 
 	}
 	return -1;
 }
-
+int aarch64_intc_ipi_send(size_t to, size_t which)
+{
+	if(INTC != NULL)
+	{
+		INTC->ipi_generate(INTC->context, to, which);
+		return 0;
+		
+	}
+	return -1;
+}
 

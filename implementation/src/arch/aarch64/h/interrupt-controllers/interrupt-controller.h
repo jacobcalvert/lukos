@@ -14,7 +14,7 @@ typedef struct
 	int (*enable)(void *ctx, size_t intno, size_t cpuno, aarch64_int_handler handler);
 	int (*enable_by_dtb)(void *ctx, void *properties, size_t pri, size_t cpuno, aarch64_int_handler handler);
 	int (*disable)(void *ctx, size_t intno, size_t cpuno);
-	int (*priority_set)(void *ctx, size_t intno, size_t priority);
+	int (*priority_set)(void *ctx, size_t intno, size_t cpuno, size_t priority);
 	size_t (*current_get)(void* ctx);
 	void (*complete)(void* ctx, size_t intno);
  	void (*generate)(void *ctx, size_t intno);
@@ -31,6 +31,12 @@ size_t aarch64_intc_current_int_get(void);
 
 void aarch64_intc_int_complete(size_t intno);
 
+int aarch64_intc_int_enable(size_t irqno, size_t cpuno, aarch64_int_handler handler);
+
+int aarch64_intc_int_pri_set(size_t irqno, size_t cpuno, size_t pri);
+
 int aarch64_intc_int_enable_by_properties(void *prop, size_t pri, size_t cpuno, aarch64_int_handler handler);
+
+int aarch64_intc_ipi_send(size_t to, size_t which);
 
 #endif

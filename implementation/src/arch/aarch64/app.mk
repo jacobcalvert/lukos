@@ -1,5 +1,8 @@
 
-APP_OBJS += $(BUILD_DIR)/src/arch/$(ARCH)/src/userspace/memory.o
+APP_OBJS += $(BUILD_DIR)/src/arch/$(ARCH)/src/userspace/memory.o \
+$(BUILD_DIR)/src/arch/$(ARCH)/src/userspace/schedule.o \
+$(BUILD_DIR)/src/arch/$(ARCH)/src/userspace/interrupt.o \
+$(BUILD_DIR)/src/arch/$(ARCH)/src/userspace/device.o 
 
 KERNEL_INCLUDES += -I ./src/kernel/h/
 

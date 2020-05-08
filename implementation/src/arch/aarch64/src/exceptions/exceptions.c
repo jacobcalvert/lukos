@@ -2,9 +2,12 @@
 #include <interrupt-controllers/interrupt-controller.h>
 #include <managers/virtual-memory-manager.h>
 #include <managers/process-manager.h>
+#include <managers/interrupt-manager.h>
 #include <managers/vmm_arch.h>
 #include <userspace/syscall_numbers.h>
 #include <interfaces/userspace/memory.h>
+#include <interfaces/userspace/device.h>
+#include <interfaces/platform/platform_data.h>
 
 
 #define MAX_CPUS		8
@@ -16,7 +19,7 @@
 #define X1_FRAME_OFFSET		97U
 
 
-
+extern platform_data_t PLATFORM_DATA;
 static aarch64_int_handler EXCEPTION_HANDLER_TABLE[MAX_CPUS][MAX_INTS];
 
 void aarch64_scheduling_interrupt(size_t cpuno, size_t intno);
@@ -57,13 +60,56 @@ void aarch64_svc_handle(size_t cpuno, void *sp)
 		{
 			break;
 		};
-		
+		case SYSCALL_INTERRUPT_ATTACH:
+		{
+			size_t irqno = ((size_t*)frame)[X1_FRAME_OFFSET];
+			void *entry = (void*)((size_t*)frame)[X2_FRAME_OFFSET];
+			((uint64_t*)frame)[X0_FRAME_OFFSET]  = intm_interrupt_attach(thread->parent, cpuno, irqno, 0, entry);
+			break;
+		};
+		case SYSCALL_INTERRUPT_COMPLETE:
+		{
+			/* discard the incoming static pointer, we don't care */
+			/* get new stack pointer for next to be scheduled */
+			/* set it up and turn scheduling back on */
+			uint64_t freq = 0;
+			uint64_t comp = 0;
+			uint64_t current = 0;
+			void *sp0 =NULL;
+			void *ttbr0 = NULL;
+			__asm__ __volatile__("mrs %0, cntfrq_el0" : "=r" (freq) : : );
+			comp = freq/PLATFORM_DATA.scheduling_freq;
+			__asm__ __volatile__("mrs %0, cntpct_el0" : "=r" (current) : : );
+			comp+=current;
+			__asm__ __volatile__("msr cntp_cval_el0, %0" : "=r" (comp) : : );
+			
+			thread_t *thr = pm_thread_next_get(cpuno);
+			sp0 = thr->stack_pointer;
+			__asm__ __volatile__("msr SPSel, #0\r\nmov sp, %0\r\nmsr SPSel, #1" : "=r" (sp0) : : );
+			ttbr0 = (void*)((aarch64_vmm_context_t*)thr->parent->as->arch_context)->translation_table;
+			 __asm ("msr ttbr0_el1, %[ttbr0]\r\nisb" : : [ttbr0] "r" (ttbr0));
+			__asm__ __volatile("mov x0, #1");
+			__asm__ __volatile("msr cntp_ctl_el0, x0");
+			__asm__ __volatile("msr daifclr, #7");
+			load_ttbr0 = 0;
+			break;
+		};
 		case SYSCALL_MEMORY_ALLOC:
 		{
 			size_t size = ((size_t*)frame)[X1_FRAME_OFFSET];
 			size_t flags = ((size_t*)frame)[X2_FRAME_OFFSET];
 			void **ptr = (void**)((size_t*)frame)[X3_FRAME_OFFSET];
 			((uint64_t*)frame)[X0_FRAME_OFFSET] = syscall_memory_alloc_kernel_handler(thread, size, flags, ptr);
+			break;
+		};
+		
+		case SYSCALL_DEVICE_ALLOC:
+		{
+		
+			void* base = (void*)((size_t*)frame)[X1_FRAME_OFFSET];
+			size_t len = ((size_t*)frame)[X2_FRAME_OFFSET];
+			void **ptr = (void**)((size_t*)frame)[X3_FRAME_OFFSET];
+			((uint64_t*)frame)[X0_FRAME_OFFSET] = syscall_device_alloc_kernel_handler(thread, base, len, ptr);
 			break;
 		};
 	
@@ -82,6 +128,7 @@ void aarch64_svc_handle(size_t cpuno, void *sp)
 void aarch64_exceptions_handle(size_t cpuno)
 {
 	size_t intno = aarch64_intc_current_int_get();//
+	//aarch64_intc_ipi_send(0, 2);
 	if(cpuno < MAX_CPUS  && intno < MAX_INTS)
 	{
 		if(EXCEPTION_HANDLER_TABLE[cpuno][intno])

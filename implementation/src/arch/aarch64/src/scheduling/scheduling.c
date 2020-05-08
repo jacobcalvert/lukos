@@ -94,6 +94,12 @@ void aarch64_core_timer_init(size_t cpuno)
 		
 }
 
+void aarch64_scheduling_stop(void)
+{
+	__asm__ __volatile("mov x0, #0");
+	__asm__ __volatile("msr cntp_ctl_el0, x0");
+}
+
 void aarch64_scheduling_interrupt(size_t cpuno, size_t intno)
 {
 	uint64_t freq = 0;

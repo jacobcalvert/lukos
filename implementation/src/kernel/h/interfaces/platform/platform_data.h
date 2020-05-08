@@ -27,6 +27,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#define INTERRUPT_RESTRICT_CPU(N)		(1<<N)
+#define INTERRUPT_RESTRICT_CPU_ALL		(size_t)-1
+
 typedef struct
 {
 	char *name;
@@ -34,6 +37,14 @@ typedef struct
 	size_t len;
 
 }platform_restrict_range_t;
+
+typedef struct
+{
+	char *name;
+	size_t irqno;
+	size_t cpus;
+
+}platform_restrict_interrupt_t;
 
 typedef struct platform_data
 {
@@ -45,6 +56,10 @@ typedef struct platform_data
 	uint32_t scheduling_freq; 	/**< scheduling frequency in Hz */
 	
 	platform_restrict_range_t *restricted_ranges;	/**< MMIO restricted ranges */
+	size_t num_restricted_ranges;
+	
+	platform_restrict_interrupt_t *restricted_interrupts;	/**< interrupt numbers the processes aren't allowed to attach */
+	size_t num_restricted_interrupts;
 	
 	
 

@@ -7,6 +7,7 @@
 #include <interfaces/platform/platform_data.h>
 #include <managers/virtual-memory-manager.h>
 #include <managers/process-manager.h>
+#include <managers/interrupt-manager.h>
 #include <string.h>
 
 #include <stdint.h>
@@ -40,6 +41,7 @@ void aarch64_init(void *dtb_addr)
 	aarch64_init_aux_cpus();
 	vmm_init();
 	pm_init(PLATFORM_DATA.max_cpus);
+	intm_init(PLATFORM_DATA.max_cpus, 255);
 	aarch64_aux_cpu_entry(0);
 }
 
