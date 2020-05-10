@@ -28,4 +28,9 @@ syscall_schedule_sleep:
 	ret
 
 	
-
+.global syscall_schedule_thread_create
+syscall_schedule_thread_create:
+	mov x1, x0
+	mov x0, #SYSCALL_SCHEDULING_THREAD_CREATE
+	svc #0
+	ret

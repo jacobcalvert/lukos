@@ -24,21 +24,16 @@ void aarch64_scheduling_interrupt(size_t cpuno, size_t intno);
 void aarch64_scheduling_init(size_t cpuno)
 {
 	/* setup idle process */
-	char name[6] = {'i', 'd', 'l', 'e', 'N', '\0'};
+	char name[6] = "app-n\0";
 	extern char __app;
 	if(cpuno == 0)
 	{
-		address_space_t *idle_as = vmm_address_space_create();
+		address_space_t *app_as = vmm_address_space_create();
 		void *entry = NULL;
-		elflib_binary_load((void*)&__app, idle_as, &entry);
-		process_t *idle = pm_process_create("idle", idle_as, PM_SCHEDULER_PRIORITY, 255);
-		for(size_t c = 0; c < PLATFORM_DATA.max_cpus; c++)
-		{
-			name[4] = '0' + (char)c;
-			pm_thread_affinity_set(pm_thread_create(name, idle, entry, cpuno, NULL, 0x1000, 255), PM_THREAD_AFF_CORE(c));
-		}
-		
-		pm_process_schedule(idle);
+		elflib_binary_load((void*)&__app, app_as, &entry);
+		process_t *app = pm_process_create("app", app_as, PM_SCHEDULER_PRIORITY, 255);
+		pm_thread_create(name, app, entry, (void*)cpuno, 0x1000, 255);
+		pm_process_schedule(app);
 		CPU_WAIT_LOCK = 0;
 	}
 	

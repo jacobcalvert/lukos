@@ -3,16 +3,20 @@
 #include <managers/virtual-memory-manager.h>
 #include <managers/process-manager.h>
 #include <managers/interrupt-manager.h>
+#include <managers/ipc-manager.h>
 #include <managers/vmm_arch.h>
 #include <userspace/syscall_numbers.h>
 #include <interfaces/userspace/memory.h>
 #include <interfaces/userspace/device.h>
+#include <interfaces/userspace/schedule.h>
 #include <interfaces/platform/platform_data.h>
 
 
 #define MAX_CPUS		8
 #define MAX_INTS		256
 
+#define X4_FRAME_OFFSET		92U
+#define X5_FRAME_OFFSET		93U
 #define X2_FRAME_OFFSET		94U
 #define X3_FRAME_OFFSET		95U
 #define X0_FRAME_OFFSET		96U
@@ -60,6 +64,12 @@ void aarch64_svc_handle(size_t cpuno, void *sp)
 		{
 			break;
 		};
+		case SYSCALL_SCHEDULING_THREAD_CREATE:
+		{
+			thread_info_t *info = (thread_info_t*)vmm_arch_v2p(as->arch_context,(void*)((size_t*)frame)[X1_FRAME_OFFSET]);
+			((uint64_t*)frame)[X0_FRAME_OFFSET] = pm_thread_create((char*)vmm_arch_v2p(as->arch_context,(void*)info->name), thread->parent, info->entry, info->arg, info->stack_size,info->priority)?0:-1; 
+			break;	
+		}
 		case SYSCALL_INTERRUPT_ATTACH:
 		{
 			size_t irqno = ((size_t*)frame)[X1_FRAME_OFFSET];
@@ -114,6 +124,62 @@ void aarch64_svc_handle(size_t cpuno, void *sp)
 		};
 	
 	
+		case SYSCALL_IPC_PIPE_CREATE:
+		{
+			char *name = (char*)vmm_arch_v2p(as->arch_context,(void*)((size_t*)frame)[X1_FRAME_OFFSET]);
+			size_t msg_size = ((size_t*)frame)[X2_FRAME_OFFSET];
+			size_t max_msgs = ((size_t*)frame)[X3_FRAME_OFFSET];
+			size_t flags = ((size_t*)frame)[X4_FRAME_OFFSET];
+			
+			((uint64_t*)frame)[X0_FRAME_OFFSET]  = ipcm_pipe_create(name, msg_size, max_msgs, flags)?0:-1;
+		
+			break;
+		};
+		
+		case SYSCALL_IPC_PIPE_ID_GET:
+		{
+			char *name = (char*)vmm_arch_v2p(as->arch_context,(void*)((size_t*)frame)[X1_FRAME_OFFSET]);
+			size_t* id = (size_t*)vmm_arch_v2p(as->arch_context,(void*)((size_t*)frame)[X2_FRAME_OFFSET]);
+			
+			ipc_pipe_t *pipe = ipcm_pipe_lookup_by_name(name);
+			*id = pipe->id;
+			
+			((uint64_t*)frame)[X0_FRAME_OFFSET]  = pipe?0:-1;
+		
+			break;
+		};
+		
+		case SYSCALL_IPC_PIPE_WRITE:
+		{
+			size_t id = ((size_t*)frame)[X1_FRAME_OFFSET];
+			void *vamsg = (void*)((size_t*)frame)[X2_FRAME_OFFSET];
+			size_t len = ((size_t*)frame)[X3_FRAME_OFFSET];
+			int result = ipcm_pipe_write(thread, id, vamsg, len);
+			if(result == -4)
+			{
+				/* causes a context switch */
+				((uint64_t*)frame)[X0_FRAME_OFFSET] = result;
+				aarch64_scheduling_interrupt(cpuno, 0);
+				load_ttbr0 = 0;
+			}
+			break;
+		};
+	
+		case SYSCALL_IPC_PIPE_READ:
+		{
+			size_t id = ((size_t*)frame)[X1_FRAME_OFFSET];
+			void *vamsg = (void*)((size_t*)frame)[X2_FRAME_OFFSET];
+			void *valen = (void*)((size_t*)frame)[X3_FRAME_OFFSET];
+			int result = ipcm_pipe_read(thread, id, vamsg, valen);
+			if(result == -4)
+			{
+				/* causes a context switch */
+				((uint64_t*)frame)[X0_FRAME_OFFSET] = result;
+				aarch64_scheduling_interrupt(cpuno, 0);
+				load_ttbr0 = 0;
+			}
+			break;
+		};
 		default: break;
 	}
 	if(load_ttbr0)

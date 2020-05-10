@@ -28,8 +28,7 @@ void pm_arch_thread_stack_populate(process_t *prc, thread_t *thr)
 	thr->stack_pointer = (void*)((size_t)base + (frame_base_off_words*sizeof(uint64_t))); /* VA frame base */
 	
 	memset(frame_base, 0, FRAME_SIZE_BYTES);
-	frame_base[X0_FRAME_OFFSET] = (uint64_t)thr->argc;
-	frame_base[X1_FRAME_OFFSET] = (uint64_t)thr->argv;
+	frame_base[X0_FRAME_OFFSET] = (uint64_t)thr->arg;
 	frame_base[SPSR_FRAME_OFFSET] = (uint64_t)DEFAULT_SPSR;
 	frame_base[ELR_FRAME_OFFSET] = (uint64_t)thr->entry;
 	frame_base[X30_FRAME_OFFSET] = (uint64_t)thr->entry;

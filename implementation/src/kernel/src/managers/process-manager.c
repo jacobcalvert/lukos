@@ -25,7 +25,7 @@ static size_t MAX_CPUS = 0;
 
 static thread_t **CURRENT_THREAD = NULL;
 
-
+void idle(void *arg);
 static void thread_list_append(process_t *prc, thread_t *thr);
 static void process_list_append(process_t *prc);
 
@@ -40,6 +40,22 @@ void pm_init(size_t max_cpus)
 	{
 		CURRENT_THREAD[i++] = NULL;
 	}
+	
+	void *entry = NULL;
+	address_space_t *as = vmm_address_space_create(); 
+	vmm_address_space_region_create_auto(as, 0x1000, AS_REGION_RX, &entry);
+	vmm_address_space_copy_in(as, &idle, entry, 0x1000);
+	process_t *idle_process = pm_process_create("idle", as, PM_SCHEDULER_PRIORITY, (size_t)-2);
+	i = 0;
+	while(i < MAX_CPUS)
+	{
+		char name[6] = "idle0\0";
+		name[4] = '0' + (char)i;
+		pm_thread_affinity_set(pm_thread_create(name, idle_process, entry, (void*)i, 0x1000, (size_t)-2), PM_THREAD_AFF_CORE(i));
+		++i;
+	}
+	pm_process_schedule(idle_process);
+	
 }
 
 process_t *pm_process_create(char *name, address_space_t *as, process_scheduler_t scheduler, size_t priority)
@@ -59,7 +75,7 @@ process_t *pm_process_create(char *name, address_space_t *as, process_scheduler_
 	return prc;
 }
 
-thread_t* pm_thread_create(char *name, process_t *prc, void *entry, int argc, char **argv, size_t stack_size, size_t priority)
+thread_t* pm_thread_create(char *name, process_t *prc, void *entry, void *arg, size_t stack_size, size_t priority)
 {
 	thread_t *thread = (thread_t *)memlib_malloc(sizeof(thread_t));
 	
@@ -74,16 +90,9 @@ thread_t* pm_thread_create(char *name, process_t *prc, void *entry, int argc, ch
 	memset(thread->name, 0, strlen(name)+1);
 	strncpy(thread->name, name, strlen(name));
 	
-	thread->argv = (char **)memlib_malloc(sizeof(char*)*argc);
+	thread->arg = arg;
 	
 	thread->flags = PM_THREAD_FLAGS_READY;
-	
-	for(int i = 0; i < argc; i++)
-	{
-		thread->argv[i] = (char*)memlib_malloc(strlen(argv[i])+1);
-		memset(thread->argv[i], 0, strlen(argv[i])+1);
-		strncpy(thread->argv[i], argv[i], strlen(argv[i]));
-	}
 	
 	/* we need to 
 		1) create the stack in the destination AS
@@ -169,6 +178,18 @@ thread_t* process_scheduler_run(process_t *prc, size_t cpuno)
 				
 				if( (pTln->thread->affinity == PM_THREAD_AFF_NONE) || (pTln->thread->affinity & PM_THREAD_AFF_CORE(cpuno)) )
 				{
+					pTln->thread->flags |= PM_THREAD_FLAGS_READY;
+					
+					if(pTln->thread->blockers != 0)
+					{
+						pTln->thread->flags &= ~PM_THREAD_FLAGS_READY;
+					}
+					
+					if(pTln->thread->flags & PM_THREAD_FLAGS_RUNNING)
+					{
+						pTln->thread->flags &= ~PM_THREAD_FLAGS_READY;
+					}
+					
 					if(pTln->thread->flags & PM_THREAD_FLAGS_READY)
 					{
 						if(pTln->thread->priority < max)

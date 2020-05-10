@@ -44,11 +44,12 @@ typedef struct
 	void *stack_base;
 	void *stack_pointer;
 	void *entry;
-	int argc;
-	char **argv;
+	void *arg;
 	size_t flags;
 	size_t affinity;
 	struct process *parent;
+	
+	size_t blockers;
 	
 }thread_t;
 
@@ -108,12 +109,11 @@ void pm_process_schedule(process_t *prc);
  * @param name			this thred's name
  * @param prc			the parent process
  * @param entry			the entry point
- * @param argc			the argument count
- * @param argv			the argument array
+ * @param arg			the argument
  * @param stack_size	the thread stack size
  * @param priority		the thread priority (unused in some process schedulers )
  */
-thread_t* pm_thread_create(char *name, process_t *prc, void *entry, int argc, char **argv, size_t stack_size, size_t priority);
+thread_t* pm_thread_create(char *name, process_t *prc, void *entry, void*arg, size_t stack_size, size_t priority);
 
 
 /**
