@@ -1,111 +1,245 @@
 <html><style>
-:root {
-  --link-color: #01ff70;
-  --link-hover-color: #2ecc40;
-}
+@media print {
+  *,
+  *:before,
+  *:after {
+    background: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
 
-@import "furtive-code";
-@import "furtive-print";
-@import "furtive-links";
-@import "furtive-typescale";
-@import "furtive-responsive-utils";
+  a,
+  a:visited {
+    text-decoration: underline;
+  }
 
-html,
-body {
-  background-color: #222;
-  min-height: 100%;
+  a[href]:after {
+    content: " (" attr(href) ")";
+  }
+
+  abbr[title]:after {
+    content: " (" attr(title) ")";
+  }
+
+  a[href^="#"]:after,
+  a[href^="javascript:"]:after {
+    content: "";
+  }
+
+  pre,
+  blockquote {
+    border: 1px solid #999;
+    page-break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr,
+  img {
+    page-break-inside: avoid;
+  }
+
+  img {
+    max-width: 100% !important;
+  }
+
+  p,
+  h2,
+  h3 {
+    orphans: 3;
+    widows: 3;
+  }
+
+  h2,
+  h3 {
+    page-break-after: avoid;
+  }
 }
 
 html {
-  font-size: 18px;
+  font-size: 12px;
 }
 
-a {
-	color: #c0c0c0;
+@media screen and (min-width: 32rem) and (max-width: 48rem) {
+  html {
+    font-size: 15px;
+  }
+}
+
+@media screen and (min-width: 48rem) {
+  html {
+    font-size: 16px;
+  }
 }
 
 body {
-  color: #fafafa;
-  font-family: "Courier New";
-  line-height: 1.45;
-  margin: 6rem auto 1rem;
+  line-height: 1.85;
+}
+
+p,
+.splendor-p {
+  font-size: 1rem;
+  margin-bottom: 1.3rem;
+}
+
+h1,
+.splendor-h1,
+h2,
+.splendor-h2,
+h3,
+.splendor-h3,
+h4,
+.splendor-h4 {
+  margin: 1.414rem 0 .5rem;
+  font-weight: inherit;
+  line-height: 1.42;
+}
+
+h1,
+.splendor-h1 {
+  margin-top: 0;
+  font-size: 3.998rem;
+}
+
+h2,
+.splendor-h2 {
+  font-size: 2.827rem;
+}
+
+h3,
+.splendor-h3 {
+  font-size: 1.999rem;
+}
+
+h4,
+.splendor-h4 {
+  font-size: 1.414rem;
+}
+
+h5,
+.splendor-h5 {
+  font-size: 1.121rem;
+}
+
+h6,
+.splendor-h6 {
+  font-size: .88rem;
+}
+
+small,
+.splendor-small {
+  font-size: .707em;
+}
+
+/* https://github.com/mrmrs/fluidity */
+
+img,
+canvas,
+iframe,
+video,
+svg,
+select,
+textarea {
+  max-width: 100%;
+}
+
+@import url(http://fonts.googleapis.com/css?family=Merriweather:300italic,300);
+
+html {
+  font-size: 18px;
+  max-width: 100%;
+}
+
+body {
+  color: #444;
+  font-family: 'Merriweather', Georgia, serif;
+  margin: 0;
+ /* max-width: 100%;*/
+}
+
+/* === A bit of a gross hack so we can have bleeding divs/blockquotes. */
+
+p,
+*:not(div):not(img):not(body):not(html):not(li):not(blockquote):not(p) {
+  margin: 1rem auto 1rem;
+ /* max-width: 36rem;*/
   padding: .25rem;
 }
 
-pre {
-  background-color: #333;
-}
-
-blockquote {
-  border-left: 3px solid var(--link-color);
-  padding-left: 1rem;
-}
-
-table {
-  border: 2px solid #000000;
-  background-color: #4A4A4A;
+div {
   width: 100%;
-  height: 200px;
-  text-align: center;
-  border-collapse: collapse;
-}
-table td, table th {
-  border: 1px solid #4A4A4A;
-  padding: 3px 2px;
-}
-table tbody td {
-  font-size: 13px;
-  color: #E6E6E6;
-}
-table tr:nth-child(even) {
-  background: #888888;
-}
-table thead {
-  background: #000000;
-  border-bottom: 3px solid #000000;
-}
-table thead th {
-  font-size: 15px;
-  font-weight: bold;
-  color: #E6E6E6;
-  text-align: center;
-  border-left: 2px solid #4A4A4A;
-}
-table thead th:first-child {
-  border-left: none;
 }
 
-table tfoot {
-  font-size: 12px;
-  font-weight: bold;
-  color: #E6E6E6;
-  background: #000000;
-  background: -moz-linear-gradient(top, #404040 0%, #191919 66%, #000000 100%);
-  background: -webkit-linear-gradient(top, #404040 0%, #191919 66%, #000000 100%);
-  background: linear-gradient(to bottom, #404040 0%, #191919 66%, #000000 100%);
-  border-top: 1px solid #4A4A4A;
-}
-table tfoot td {
-  font-size: 12px;
+div img {
+  width: 100%;
 }
 
+blockquote p {
+  font-size: 1.5rem;
+  font-style: italic;
+  margin: 1rem auto 1rem;
+  max-width: 48rem;
+}
+
+li {
+  margin-left: 2rem;
+}
+
+/* Counteract the specificity of the gross *:not() chain. */
+
+h1 {
+  padding: 4rem 0 !important;
+}
+
+/*  === End gross hack */
+
+p {
+  color: #555;
+  height: auto;
+  line-height: 1.45;
+}
+
+pre,
+code {
+  font-family: Menlo, Monaco, "Courier New", monospace;
+}
+
+pre {
+  background-color: #fafafa;
+  font-size: .8rem;
+  overflow-x: scroll;
+  padding: 1.125em;
+}
+
+a,
+a:visited {
+  color: #3498db;
+}
+
+a:hover,
+a:focus,
+a:active {
+  color: #2980b9;
+}
 </style>
 <h1> Table of Contents </h1>
 <ul>
   <li><a href="#lukos-kernel-functions-process-management">LuKOS Kernel Functions - Process Management</a>
   <ul>
-    <li><a href="#process-model">Process Model</a>
+    <li><a href="#concepts">Concepts</a>
     <ul>
-      <li><a href="#process-creationdeletion">Process Creation/Deletion</a></li>
+      <li><a href="#processes">Processes</a></li>
+      <li><a href="#process-based-scheduling">Process-based Scheduling</a></li>
+      <li><a href="#threads">Threads</a></li>
     </ul></li>
-    <li><a href="#process-management">Process Management</a>
+    <li><a href="#architecture-specific-concepts">Architecture Specific Concepts</a>
     <ul>
-      <li><a href="#kernel-calls">Kernel Calls</a></li>
+      <li><a href="#aarch64-armv8-a">AARCH64 (ARMv8-A)</a></li>
     </ul></li>
-    <li><a href="#thread-management">Thread Management</a>
-    <ul>
-      <li><a href="#kernel-calls-2">Kernel Calls</a></li>
-    </ul></li>
+    <li><a href="#kernel-interface">Kernel Interface</a></li>
   </ul></li>
 </ul>
 
@@ -113,41 +247,102 @@ table tfoot td {
 
 <p>The process management model defines what a process is, and how it interacts with the kernel. This process manager is implemented as a Process Manager (PM).</p>
 
-<h2 id="process-model">Process Model</h2>
+<h2 id="concepts">Concepts</h2>
 
-<p>A process is simply a single thread or collection of threads sharing an address space. The individual threads in a process will be scheduled according to the currently implemented scheduler policy regardless of process relation. </p>
+<h3 id="processes">Processes</h3>
 
-<h3 id="process-creationdeletion">Process Creation/Deletion</h3>
+<p>A process is simply a single thread or collection of threads sharing an Address Space. Processes are created with a particular priority which the kernel schedules in a priority-preemptive fashion. </p>
 
-<p>Processes can be spawned from the root process on system startup, and from other running processes. Additional threads of execution in the same process can be spawned from the initial thread in the process. A process can only delete itself in userland, but the kernel can kill a process (if it is behaving badly). If all threads in a process are deleted, the kernel will remove the process identifier as well. </p>
+<h3 id="process-based-scheduling">Process-based Scheduling</h3>
 
-<h2 id="process-management">Process Management</h2>
+<p>The kernel will check if a process is schedulable and if so turns scheduling control over to that process. The process will then select from its threads using whatever scheduling algorithm is applicable to that particular process. </p>
 
-<h3 id="kernel-calls">Kernel Calls</h3>
+<h3 id="threads">Threads</h3>
 
-<pre><code>/**
- * create a new process
- */ 
-process_t pm_process_create(thread_func_t entry, size_t stack_size);
+<p>A thread is a single "task" running in a process's address space. This thread has properties like priority (which may be unused if the round-robin scheduler is used by this process), core affinity, a name, etc. </p>
+
+<h2 id="architecture-specific-concepts">Architecture Specific Concepts</h2>
+
+<h3 id="aarch64-armv8-a">AARCH64 (ARMv8-A)</h3>
+
+<p>There are no special requirements or specificities on this architecture.</p>
+
+<h2 id="kernel-interface">Kernel Interface</h2>
+
+<p>These are the calls defined for use by the kernel. </p>
+
+<pre><code>
+/**
+ * initialize the Process Manager
+ * @param maxcpus       the maximum number of CPUs expected in this systems
+ */
+void pm_init(size_t maxcpus);
 
 /**
- * delete this process, removes all threads associated with this process
+ * create a process with the given parameters but no threads and does not ready for scheduling
+ * @param name      the process name
+ * @param as        the address space
+ * @param scheduler the desired thread scheduler
+ * @param priority  the process priority
  */
- void pm_process_delete(void);
-</code></pre>
+process_t *pm_process_create(char *name, address_space_t *as, process_scheduler_t scheduler, size_t priority);
 
-<h2 id="thread-management">Thread Management</h2>
-
-<h3 id="kernel-calls-2">Kernel Calls</h3>
-
-<pre><code>/**
- * create a new thread in the current process
- */
- thread_t pm_thread_create(thread_func_t entry, size_t stack_size, void *arg);
 
 /**
- * deletes a given thread in this process
+ * add a process to the scheduler
+ * @param prc       the process
  */
-void pm_thread_delete(thread_t thread, int *rc);
+void pm_process_schedule(process_t *prc);
+
+
+
+/**
+ * create a thread and add it to the specified process
+ * note: if this process is scheduled, this thread will be immediately schedulable 
+ * @param name          this thred's name
+ * @param prc           the parent process
+ * @param entry         the entry point
+ * @param argc          the argument count
+ * @param argv          the argument array
+ * @param stack_size    the thread stack size
+ * @param priority      the thread priority (unused in some process schedulers )
+ */
+thread_t* pm_thread_create(char *name, process_t *prc, void *entry, int argc, char **argv, size_t stack_size, size_t priority);
+
+
+/**
+ * get the next schedulable thread for this cpu
+ * @param cpuno     the cpu number
+ * @return a pointer to the next thread
+ */
+thread_t *pm_thread_next_get(size_t cpuno);
+
+
+
+/**
+ * get current thread for this CPU
+ * @param cpuno     the cpu noumber
+ * @return a pointer to the current thread
+ */
+thread_t *pm_thread_current_get(size_t cpuno);
+
+/**
+ * set the core affinity of this thread
+ */
+void pm_thread_affinity_set(thread_t *thr, size_t aff);
+
 </code></pre>
+
+<pre><code>
+## Architecture Interface
+These are the calls to be implemented by the architecture specific code. These provide the glue between the kernel which is architecture agnostic and the details of the implementation.
+
+</code></pre>
+
+<p>/**
+ * architecture specific call to populate the task stack with the arguments and set the entry point
+ */
+void pm<em>arch</em>thread<em>stack</em>populate(process<em>t *prc, thread</em>t *thr);</p>
+
+<p>```</p>
 </html>

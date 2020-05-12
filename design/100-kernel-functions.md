@@ -8,9 +8,9 @@ The kernel will provide the capability to start a process in a virtual memory sp
 ### Virtual Memory Management (VMM)
 The kernel will provide the capability to map/unmap virtual memory to support processes and other services in userland. See the [Virtual Memory](110-virtual-memory.md.html) section.
 
-### Inter-Process Communication (IPC)
+### Inter-Process Communication Management(IPCM)
 The kernel will provide the capability to communicate between processes in different virtual memory address spaces. See the [IPC Model](130-ipc-model.md.html) section.
 
-### Interrupt Management (IM)
-The kernel will provide the capability to register for, receive, acknowledge, and deliver interrupts to processes. 
+### Interrupt Management (INTM)
+The kernel will provide the capability to register for, receive, acknowledge, and deliver interrupts to processes. See the [Interrupt Management](140-interrupt-management.md.html) section. 
 

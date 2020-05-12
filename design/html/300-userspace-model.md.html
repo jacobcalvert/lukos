@@ -227,37 +227,84 @@ a:active {
 </style>
 <h1> Table of Contents </h1>
 <ul>
-  <li><a href="#lukos-kernel-functions">LuKOS Kernel Functions</a>
+  <li><a href="#lukos-userspace-model">LuKOS Userspace Model</a>
   <ul>
-    <li><a href="#primary-functions">Primary Functions</a>
+    <li><a href="#userspace-functions">Userspace Functions</a>
     <ul>
-      <li><a href="#process-management-pm">Process Management (PM)</a></li>
-      <li><a href="#virtual-memory-management-vmm">Virtual Memory Management (VMM)</a></li>
-      <li><a href="#inter-process-communication-managementipcm">Inter-Process Communication Management(IPCM)</a></li>
-      <li><a href="#interrupt-management-intm">Interrupt Management (INTM)</a></li>
+      <li><a href="#data-path">Data Path</a></li>
+      <li><a href="#function-groups">Function Groups</a>
+      <ul>
+        <li><a href="#scheduling-calls">Scheduling Calls</a></li>
+        <li><a href="#memory-calls">Memory Calls</a></li>
+        <li><a href="#device-calls">Device Calls</a></li>
+        <li><a href="#ipc-calls">IPC Calls</a></li>
+      </ul></li>
     </ul></li>
   </ul></li>
 </ul>
 
-<h1 id="lukos-kernel-functions">LuKOS Kernel Functions</h1>
+<h1 id="lukos-userspace-model">LuKOS Userspace Model</h1>
 
-<p>This microkernel will provide the classic bare minimum functions of a microkernel, plus some supporting functions which will be described later. </p>
+<p>The LuKOS userspace runs entirely in the loweset privilege level on the architecture (EL0 on ARMv8 for example), and uses a single Address Space (see <a href="110-virtual-memory.md.html">the Virtual Memory Management subsystem</a> for more info on this. It uses context switches via syscalls into Kernel mode to make requests for things like resources (RAM, processing time), access (shared memory) etc. </p>
 
-<h2 id="primary-functions">Primary Functions</h2>
+<h2 id="userspace-functions">Userspace Functions</h2>
 
-<h3 id="process-management-pm">Process Management (PM)</h3>
+<p>The userspace functions are broken down into groups based on their functional area.</p>
 
-<p>The kernel will provide the capability to start a process in a virtual memory space and maintain the processes's threads of execution. It will also provide scheduling to these processes and threads. The kernel will provide a mechanism to duplicate processes with all their thread states. See the <a href="120-process-model.md.html">Process Management</a> section.</p>
+<h3 id="data-path">Data Path</h3>
 
-<h3 id="virtual-memory-management-vmm">Virtual Memory Management (VMM)</h3>
+<p>When a userspace application wants the kernel to something on its behalf, the userspace application will make a system call. This system call will record the arguments to the call and switch contexts to kernel mode. The architecture-specific handler will unpack these arguments and pass them to a kernel generic handler. This process in unravelled to return data to the calling application. </p>
 
-<p>The kernel will provide the capability to map/unmap virtual memory to support processes and other services in userland. See the <a href="110-virtual-memory.md.html">Virtual Memory</a> section.</p>
+<h3 id="function-groups">Function Groups</h3>
 
-<h3 id="inter-process-communication-managementipcm">Inter-Process Communication Management(IPCM)</h3>
+<h4 id="scheduling-calls">Scheduling Calls</h4>
 
-<p>The kernel will provide the capability to communicate between processes in different virtual memory address spaces. See the <a href="130-ipc-model.md.html">IPC Model</a> section.</p>
+<pre><code>    /**
+     * yield control back to the scheduler, indicating I'm done for now
+     */
+    void syscall_schedule_yield(void);
 
-<h3 id="interrupt-management-intm">Interrupt Management (INTM)</h3>
+    /**
+     * create a new thread based on tinfo
+     * @param tinfo     thread info for creation
+     */
+    int syscall_schedule_thread_create(thread_info_t *tinfo);
 
-<p>The kernel will provide the capability to register for, receive, acknowledge, and deliver interrupts to processes. See the <a href="140-interrupt-management.md.html">Interrupt Management</a> section. </p>
+
+
+</code></pre>
+
+<h4 id="memory-calls">Memory Calls</h4>
+
+<pre><code>    /**
+     * allocate some memory for the user process
+     * @param sz        the length requested
+     * @param flags     flags indicated properties about the memory region
+     * @param ptr       out- the VA of the block
+     * @return 0 if OK or != on error/issue
+     */
+    int syscall_memory_alloc(size_t sz, size_t flags, void **ptr);
+</code></pre>
+
+<h4 id="device-calls">Device Calls</h4>
+
+<pre><code>
+    /**
+     * allocate a memory-mapped device 
+     * @param pa        the physical address of this device
+     * @param sz        number of bytes to map
+     * @param ptr       out - the VA of the mapped device
+     * @return 0 if OK or !=0 on error/issue
+     */
+     int syscall_device_alloc(void *pa, size_t sz, void **ptr);
+
+</code></pre>
+
+<h4 id="ipc-calls">IPC Calls</h4>
+
+<pre><code>    /**
+     *
+     */
+
+</code></pre>
 </html>

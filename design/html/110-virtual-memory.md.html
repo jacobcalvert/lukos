@@ -1,184 +1,347 @@
 <html><style>
-:root {
-  --link-color: #01ff70;
-  --link-hover-color: #2ecc40;
-}
+@media print {
+  *,
+  *:before,
+  *:after {
+    background: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
 
-@import "furtive-code";
-@import "furtive-print";
-@import "furtive-links";
-@import "furtive-typescale";
-@import "furtive-responsive-utils";
+  a,
+  a:visited {
+    text-decoration: underline;
+  }
 
-html,
-body {
-  background-color: #222;
-  min-height: 100%;
+  a[href]:after {
+    content: " (" attr(href) ")";
+  }
+
+  abbr[title]:after {
+    content: " (" attr(title) ")";
+  }
+
+  a[href^="#"]:after,
+  a[href^="javascript:"]:after {
+    content: "";
+  }
+
+  pre,
+  blockquote {
+    border: 1px solid #999;
+    page-break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr,
+  img {
+    page-break-inside: avoid;
+  }
+
+  img {
+    max-width: 100% !important;
+  }
+
+  p,
+  h2,
+  h3 {
+    orphans: 3;
+    widows: 3;
+  }
+
+  h2,
+  h3 {
+    page-break-after: avoid;
+  }
 }
 
 html {
-  font-size: 18px;
+  font-size: 12px;
 }
 
-a {
-	color: #c0c0c0;
+@media screen and (min-width: 32rem) and (max-width: 48rem) {
+  html {
+    font-size: 15px;
+  }
+}
+
+@media screen and (min-width: 48rem) {
+  html {
+    font-size: 16px;
+  }
 }
 
 body {
-  color: #fafafa;
-  font-family: "Courier New";
-  line-height: 1.45;
-  margin: 6rem auto 1rem;
+  line-height: 1.85;
+}
+
+p,
+.splendor-p {
+  font-size: 1rem;
+  margin-bottom: 1.3rem;
+}
+
+h1,
+.splendor-h1,
+h2,
+.splendor-h2,
+h3,
+.splendor-h3,
+h4,
+.splendor-h4 {
+  margin: 1.414rem 0 .5rem;
+  font-weight: inherit;
+  line-height: 1.42;
+}
+
+h1,
+.splendor-h1 {
+  margin-top: 0;
+  font-size: 3.998rem;
+}
+
+h2,
+.splendor-h2 {
+  font-size: 2.827rem;
+}
+
+h3,
+.splendor-h3 {
+  font-size: 1.999rem;
+}
+
+h4,
+.splendor-h4 {
+  font-size: 1.414rem;
+}
+
+h5,
+.splendor-h5 {
+  font-size: 1.121rem;
+}
+
+h6,
+.splendor-h6 {
+  font-size: .88rem;
+}
+
+small,
+.splendor-small {
+  font-size: .707em;
+}
+
+/* https://github.com/mrmrs/fluidity */
+
+img,
+canvas,
+iframe,
+video,
+svg,
+select,
+textarea {
+  max-width: 100%;
+}
+
+@import url(http://fonts.googleapis.com/css?family=Merriweather:300italic,300);
+
+html {
+  font-size: 18px;
+  max-width: 100%;
+}
+
+body {
+  color: #444;
+  font-family: 'Merriweather', Georgia, serif;
+  margin: 0;
+ /* max-width: 100%;*/
+}
+
+/* === A bit of a gross hack so we can have bleeding divs/blockquotes. */
+
+p,
+*:not(div):not(img):not(body):not(html):not(li):not(blockquote):not(p) {
+  margin: 1rem auto 1rem;
+ /* max-width: 36rem;*/
   padding: .25rem;
 }
 
-pre {
-  background-color: #333;
-}
-
-blockquote {
-  border-left: 3px solid var(--link-color);
-  padding-left: 1rem;
-}
-
-table {
-  border: 2px solid #000000;
-  background-color: #4A4A4A;
+div {
   width: 100%;
-  height: 200px;
-  text-align: center;
-  border-collapse: collapse;
-}
-table td, table th {
-  border: 1px solid #4A4A4A;
-  padding: 3px 2px;
-}
-table tbody td {
-  font-size: 13px;
-  color: #E6E6E6;
-}
-table tr:nth-child(even) {
-  background: #888888;
-}
-table thead {
-  background: #000000;
-  border-bottom: 3px solid #000000;
-}
-table thead th {
-  font-size: 15px;
-  font-weight: bold;
-  color: #E6E6E6;
-  text-align: center;
-  border-left: 2px solid #4A4A4A;
-}
-table thead th:first-child {
-  border-left: none;
 }
 
-table tfoot {
-  font-size: 12px;
-  font-weight: bold;
-  color: #E6E6E6;
-  background: #000000;
-  background: -moz-linear-gradient(top, #404040 0%, #191919 66%, #000000 100%);
-  background: -webkit-linear-gradient(top, #404040 0%, #191919 66%, #000000 100%);
-  background: linear-gradient(to bottom, #404040 0%, #191919 66%, #000000 100%);
-  border-top: 1px solid #4A4A4A;
-}
-table tfoot td {
-  font-size: 12px;
+div img {
+  width: 100%;
 }
 
+blockquote p {
+  font-size: 1.5rem;
+  font-style: italic;
+  margin: 1rem auto 1rem;
+  max-width: 48rem;
+}
+
+li {
+  margin-left: 2rem;
+}
+
+/* Counteract the specificity of the gross *:not() chain. */
+
+h1 {
+  padding: 4rem 0 !important;
+}
+
+/*  === End gross hack */
+
+p {
+  color: #555;
+  height: auto;
+  line-height: 1.45;
+}
+
+pre,
+code {
+  font-family: Menlo, Monaco, "Courier New", monospace;
+}
+
+pre {
+  background-color: #fafafa;
+  font-size: .8rem;
+  overflow-x: scroll;
+  padding: 1.125em;
+}
+
+a,
+a:visited {
+  color: #3498db;
+}
+
+a:hover,
+a:focus,
+a:active {
+  color: #2980b9;
+}
 </style>
 <h1> Table of Contents </h1>
 <ul>
   <li><a href="#lukos-kernel-functions-virtual-memory">LuKOS Kernel Functions - Virtual Memory</a>
   <ul>
-    <li><a href="#tranlation-management">Tranlation Management</a>
+    <li><a href="#concepts">Concepts</a>
     <ul>
-      <li><a href="#kernel-calls">Kernel Calls</a></li>
+      <li><a href="#virtual-address">Virtual Address</a></li>
+      <li><a href="#physical-address">Physical Address</a></li>
+      <li><a href="#address-spaces">Address Spaces</a></li>
+      <li><a href="#regions">Regions</a></li>
     </ul></li>
-    <li><a href="#dynamic-memory-heap-management">Dynamic Memory (Heap) Management</a>
+    <li><a href="#architecture-specific-concepts">Architecture Specific Concepts</a>
     <ul>
-      <li><a href="#kernel-calls-2">Kernel Calls</a></li>
+      <li><a href="#aarch64-armv8-a">AARCH64 (ARMv8-A)</a></li>
     </ul></li>
-    <li><a href="#shared-memory-management">Shared Memory Management</a>
-    <ul>
-      <li><a href="#kernel-calls-3">Kernel Calls</a></li>
-    </ul></li>
-    <li><a href="#-1"> </a></li>
+    <li><a href="#kernel-interface">Kernel Interface</a></li>
+    <li><a href="#architecture-interface">Architecture Interface</a></li>
   </ul></li>
 </ul>
 
 <h1 id="lukos-kernel-functions-virtual-memory">LuKOS Kernel Functions - Virtual Memory</h1>
 
-<p>The virtual memory management capability provided by the kernel is implemented as a Virtual Memory Manager (VMM). The VMM will manage the MMU translation entries for all processes and will be able to translate virtual-to-physical (V2P) and physical-to-virtual (P2V) addresses. </p>
+<p>The virtual memory management capability provided by the kernel is implemented as a Virtual Memory Manager (VMM). The VMM will manage the MMU translation entries for all processes and will be able to translate virtual-to-physical (V2P) addresses for the kernel and other address spaces.</p>
 
-<h2 id="tranlation-management">Tranlation Management</h2>
+<h2 id="concepts">Concepts</h2>
 
-<h3 id="kernel-calls">Kernel Calls</h3>
+<p>There are several key concepts involved with managing the virtual memory of the microkernel. They are described below.</p>
 
-<pre><code>/**
- * translate a virtual address to a physical one
- * @param virtaddr      the virtual address
- * @return the physical address represented by this virtual address in this context or NULL if not mapped
+<h3 id="virtual-address">Virtual Address</h3>
+
+<p>A Virtual Address (VA) is one that represents a resource in the system and may or may not be "backed" by anything.</p>
+
+<h3 id="physical-address">Physical Address</h3>
+
+<p>A Physical Address (PA) is an address that maps to a physical resource in the system, such as RAM or peripherals.</p>
+
+<h3 id="address-spaces">Address Spaces</h3>
+
+<p>Address Spaces, or a singular Address Space (AS), represents a range of Virtual Addresses starting at zero (0) and going to an architecture-dependent upper-bound. Each Address Space has a unique ID associated with it, and these Adress Spaces are for use with User Processes only; i.e., the kernel does not have a numbered AS. </p>
+
+<h3 id="regions">Regions</h3>
+
+<p>Each Address Space has one or more Regions. A Region is a mapping of a subrange of the VAs in the Address Space to a subrange of the PAs in the system of identical size. These Regions are lined up on architecture-dependent boundaries. Each Region has a set of properties defining the properties the user of the AS will have in this Region. For example, the .text area would be set to RX (read-execute), while the .data section would be RW (read-write). </p>
+
+<h2 id="architecture-specific-concepts">Architecture Specific Concepts</h2>
+
+<h3 id="aarch64-armv8-a">AARCH64 (ARMv8-A)</h3>
+
+<p>The Virtual Address upper bound for Address Spaces in this archtecture is 0xFFFFFF8000000000; therefore ASes in this architure have VAs in the range [0x0000000000000000, 0xFFFFFF8000000000). Note the non-inclusiveness of the upperbound. The Address Spaces in this architecture have Regions which are assigned on 4K, 2M, or 1G boundaries, depending on the requested Region size. </p>
+
+<h2 id="kernel-interface">Kernel Interface</h2>
+
+<p>These are the calls defined for use by the kernel. </p>
+
+<pre><code>
+/**
+ * initialize the virtual memory manager
  */
- void *vmm_v2p(void* virtaddr);
-
+void vmm_init(void);
 
 /**
- * translate a physical address to a virtual one
- * @param physaddr      the physical address
- * @return the virtual address mapped to the given physical address in this context or NULL if not mapped
+ * create an empty address space
+ * @return the new address space
  */
- void *vmm_p2v(void* physaddr);
+address_space_t *vmm_address_space_create(void);
 
+/**
+ * create a region in this address space of size (len) and properties (prop) and return the resulting VA in that address space
+ * @param as    the address space
+ * @param len   the len in bytes
+ * @param prop  the props
+ * @return the VA in the AS or NULL if failed (or won't do)
+ */
+void *vmm_address_space_region_create(address_space_t *as, size_t len, address_space_region_prop_t prop); 
 
-</code></pre>
-
-<h2 id="dynamic-memory-heap-management">Dynamic Memory (Heap) Management</h2>
-
-<p>The kernel will provide a mechanism to request a single or multiple pages of heap memory and to apply various attributes to it. </p>
-
-<h3 id="kernel-calls-2">Kernel Calls</h3>
-
-<pre><code> /**
-  *  
-  * get some heap pages in your address space with the given attributes
-  * @param pages        the number of pages to map
-  * @param attr         the attributes to apply
-  * @param rc           the return code
-  * @return pointer to virtual address of new heap space or NULL on failure (see return code)
-  */
-  void* vmm_heap_alloc(size_t pages, vmm_mem_attr_t attr, int *rc); 
-</code></pre>
-
-<h2 id="shared-memory-management">Shared Memory Management</h2>
-
-<p>The kernel will provide a mechanism to share memory with other contexts.</p>
-
-<h3 id="kernel-calls-3">Kernel Calls</h3>
-
-<pre><code>    /**
-     * share a block of memory via a shmem key. function returns a shmem key generated by the kernel for this region
-     * @param virtbase      the base of virtual memory to share
-     * @param len           the length of the block to share
-     * @param attr          the attributes to apply to this share
-     * @return  a key uniquely identifying this share
-     */
-    vmm_shmem_key_t vmm_shmem_share(void* virtbase, size_t len, vmm_mem_attr_t attr);
-
-    /**
-     * map a regions of shared memory into our address space
-     * @param key       the shared memory key
-     * @param len       the length of the region returned
-     * @param rc        the return code
-     * @return  a virtual address in our address space if successful, or NULL if not successfull (see rc)
-     */
-    void* vmm_shmem_map(vmm_shmem_key_t key, size_t *len, int *rc);
-
+/**
+ * copy some data from kernel space into this AS
+ * @param as            the address space
+ * @param vakernel      the VA in kernel space
+ * @param vadest        the VA in the AS space
+ * @param len           the number of bytes
+ */
+void vmm_address_space_copy_in(address_space_t *as, void *vakernel, void *vadest, size_t len);
 
 </code></pre>
 
-<h2 id="-1"> </h2>
+<h2 id="architecture-interface">Architecture Interface</h2>
+
+<p>These are the calls to be implemented by the architecture specific code. These provide the glue between the kernel which is architecture agnostic and the details of the implementation.</p>
+
+<pre><code>
+/**
+ * create the architecture specific context (transtables, etc) and return a pointer in kernel VA space to it
+ */
+void *vmm_arch_context_create(address_space_t *as);
+
+/**
+ * get a range of of virtual address space in the given context
+ * that will accomodate the given size
+ */
+void *vmm_arch_get_free_range(void *context, size_t len);
+
+/**
+ * get some RAM allocated on the architecture specific boundary that is at least as big as len
+ * @return the PA of the range
+ */
+void* vmm_arch_alloc_range(size_t len);
+
+/**
+ * map a specific VA to a specific PA of len
+ * @return non-zero if problem
+ */
+int vmm_arch_map(void *ctx, address_space_region_prop_t props,  void *va, void *pa, size_t len);
+
+/**
+ * get the PA associated with this VA
+ */
+void *vmm_arch_v2p(void *ctx, void *va);
+</code></pre>
 </html>
