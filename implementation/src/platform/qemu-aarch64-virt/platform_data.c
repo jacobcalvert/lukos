@@ -32,7 +32,7 @@ static platform_restrict_range_t ranges[] = {
 platform_data_t PLATFORM_DATA = {
 	.name = 			"QEMU ARM Virt - Cortex-A53 SMP",
 	.version =			"v0.0.1",
-	.max_cpus =			1,
+	.max_cpus =			4,
 	.scheduling_freq =	10,
 	.restricted_ranges = ranges
 

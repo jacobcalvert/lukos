@@ -1,11 +1,8 @@
 
-void main(int argc, char **argv)
+void main(void *arg)
 {
-
 	while(1)
 	{
 	
 	}
-
-
 }

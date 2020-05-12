@@ -39,23 +39,7 @@ void pm_init(size_t max_cpus)
 	while(i < MAX_CPUS)
 	{
 		CURRENT_THREAD[i++] = NULL;
-	}
-	
-	void *entry = NULL;
-	address_space_t *as = vmm_address_space_create(); 
-	vmm_address_space_region_create_auto(as, 0x1000, AS_REGION_RX, &entry);
-	vmm_address_space_copy_in(as, &idle, entry, 0x1000);
-	process_t *idle_process = pm_process_create("idle", as, PM_SCHEDULER_PRIORITY, (size_t)-2);
-	i = 0;
-	while(i < MAX_CPUS)
-	{
-		char name[6] = "idle0\0";
-		name[4] = '0' + (char)i;
-		pm_thread_affinity_set(pm_thread_create(name, idle_process, entry, (void*)i, 0x1000, (size_t)-2), PM_THREAD_AFF_CORE(i));
-		++i;
-	}
-	pm_process_schedule(idle_process);
-	
+	}	
 }
 
 process_t *pm_process_create(char *name, address_space_t *as, process_scheduler_t scheduler, size_t priority)
