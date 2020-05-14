@@ -10,8 +10,8 @@
 
 atomic32_set:
 	ldxr w2, [x0]			/* tag the memory for exclusive access */
-	stxr w1, w1, [x0]		/* try to set it, result in w1, 0 = success */
-	cbz	w1, atomic32_set_success
+	stxr w2, w1, [x0]		/* try to set it, result in w1, 0 = success */
+	cbz	w2, atomic32_set_success
 atomic32_set_fail:
 	clrex
 	mov x0, #-1

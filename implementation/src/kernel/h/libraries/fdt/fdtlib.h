@@ -22,7 +22,7 @@
 #ifndef __FDTLIB_H__
 #define __FDTLIB_H__
 
-#include <stdlib.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #define FDT_OK					0

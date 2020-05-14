@@ -24,9 +24,16 @@
 #define KERNEL_SYSCALL5(name, arg1, arg2, arg3, arg4, arg5)	int name(arg1, arg2, arg3, arg4, arg5); \
 												int name##_kernel_handler(thread_t *thr, arg1, arg2, arg3, arg4, arg5)
 												
-												
-#define USERSPACE_RESULT_OK				0
-#define USERSPACE_RESULT_ERROR			-1
+/* generic results */												
+#define SYSCALL_RESULT_OK				0
+#define SYSCALL_RESULT_ERROR			-1
+#define SYSCALL_RESULT_BAD_PARAM		-2
+#define SYSCALL_RESULT_NOT_FOUND		-3
+
+/* specific results */
+#define SYSCALL_RESULT_PIPE_EMPTY		-1000
+#define SYSCALL_RESULT_PIPE_FULL		-1001
+
 
 
 

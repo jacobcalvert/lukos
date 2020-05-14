@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <interfaces/userspace/macros.h>
 #include <managers/process-manager.h>
+
 /**
  * allocate some memory for the user process
  * @param sz		the length requested

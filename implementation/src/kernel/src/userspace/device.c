@@ -33,7 +33,7 @@ int syscall_device_alloc_kernel_handler(thread_t *thr, void *base, size_t len, v
 		if(rq_base <= restr_base && rq_end >= restr_end)
 		{
 			/* requested region is superset of no-go */
-			return -1;
+			return SYSCALL_RESULT_ERROR;
 		}	
 	}
 	
@@ -42,12 +42,12 @@ int syscall_device_alloc_kernel_handler(thread_t *thr, void *base, size_t len, v
 	va = vmm_arch_get_free_va_range(as->arch_context, len);
 	if(vmm_arch_map(as->arch_context, AS_REGION_RW, va, base, len)!= 0)
 	{
-		return -2;
+		return SYSCALL_RESULT_ERROR;
 	}
 	
 	/* copy from the ADDRESS of the address, to the destination VA in AS */
 	vmm_address_space_copy_in(as, (void*)&va, ptr, sizeof(void*));
 	
 	
-	return 0;
+	return SYSCALL_RESULT_OK;
 }

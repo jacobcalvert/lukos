@@ -9,12 +9,12 @@ int syscall_memory_alloc_kernel_handler(thread_t *thr, size_t sz, size_t flags, 
 	void *va = NULL;
 	if(vmm_address_space_region_create_auto(as, sz, AS_REGION_RW, &va) != 0)
 	{
-		return USERSPACE_RESULT_ERROR;
+		return SYSCALL_RESULT_ERROR;
 	}	
 	
 	/* copy from the ADDRESS of the address, to the destination VA in AS */
 	vmm_address_space_copy_in(as, (void*)&va, ptr, sizeof(void*));
 
 		
-	return USERSPACE_RESULT_OK;
+	return SYSCALL_RESULT_OK;
 }
