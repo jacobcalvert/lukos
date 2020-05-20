@@ -1,5 +1,10 @@
-.section ".data" /* stick this in the .dtb section */
+.section ".data" /* stick this in the .data section */
 .align 12
-.global __app
-__app:
-	.incbin "./src/platform/qemu-aarch64-virt/004-ipc.elf"
+.global __io_server
+__io_server:
+	.incbin "./src/platform/qemu-aarch64-virt/102-pl011-io-server.elf"
+	
+.align 12
+.global __idle
+__idle:
+		.incbin "./src/platform/qemu-aarch64-virt/000-basic.elf"

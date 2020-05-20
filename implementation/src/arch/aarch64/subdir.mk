@@ -9,7 +9,6 @@ $(BUILD_DIR)/src/arch/$(ARCH)/src/managers/vmm_arch.o \
 $(BUILD_DIR)/src/arch/$(ARCH)/src/managers/pm_arch.o \
 $(BUILD_DIR)/src/arch/$(ARCH)/src/os/atomic.o \
 $(BUILD_DIR)/src/arch/$(ARCH)/src/scheduling/scheduling.o \
-$(BUILD_DIR)/src/arch/$(ARCH)/src/scheduling/idle.o \
 $(BUILD_DIR)/src/arch/$(ARCH)/src/managers/intm_arch.o
 
 

@@ -32,40 +32,74 @@ void *vmm_arch_context_create(address_space_t *as)
 
 void *vmm_arch_get_free_va_range(void *ctx, size_t len)
 {
-	/* probe in blocks */
-	size_t page_size = PAGE_SIZE_4K;
-	
-	size_t no_pages = (len/page_size);
-	if( (len % page_size) != 0)
+	size_t no_pages[3] = 	{0, 0, 	0};
+	size_t pg_sizes[3] = 	{PAGE_SIZE_4K, PAGE_SIZE_2M, PAGE_SIZE_1G};
+	size_t pgszi = 2;
+	size_t local_len = len;
+	while(local_len >= PAGE_SIZE_1G)
 	{
-		no_pages ++;
+	local_len -= PAGE_SIZE_1G;
+	no_pages[0]++;
+	}
+
+	while(local_len >= PAGE_SIZE_2M )
+	{
+	local_len -= PAGE_SIZE_2M;
+	no_pages[1]++;
+	}
+
+	while( local_len >= PAGE_SIZE_4K )
+	{
+	local_len -= PAGE_SIZE_4K;
+	no_pages[2]++;
+	}
+
+	if(local_len != 0)
+	{
+	no_pages[2]++; /* left overs */
 	}
 	
 	size_t address = 0;
 	size_t potential = 0;
 	size_t free_pages = 0;
+	size_t top_page_idx = 2;
+	while(no_pages[top_page_idx] == 0) top_page_idx--;
+	
 	while(address < VIRTADDR_BASE)
 	{
+skiploop_start:
+		/* skip over the used pages */
 		while(vmm_arch_v2p(ctx, (void*)address) != NULL)
 		{
-			address += page_size;
+			address += pg_sizes[top_page_idx];
 		}
-		free_pages = 0;
+		/* work our way down in a contiguous block */
 		potential = address;
-		while(vmm_arch_v2p(ctx, (void*)address) == NULL)
+		pgszi = top_page_idx;
+		while(pgszi)
 		{
-			free_pages++;
-			address += page_size;
-			if(free_pages >= no_pages)
+			size_t npgs = no_pages[pgszi];
+			while(npgs--)
 			{
-				goto vmm_arch_get_free_range_return_success;
+				size_t page_size = pg_sizes[pgszi];
+				if(vmm_arch_v2p(ctx, (void*)address) != NULL)
+				{
+					goto skiploop_start;
+				}
+				
+				address += page_size;
+				
+			
+			
+				
 			}
+			pgszi--;
 		}
+		return (void*)potential;
+		
 	
 	}
 	return NULL;
-vmm_arch_get_free_range_return_success:
-	return (void*)potential;	
 }	
 
 

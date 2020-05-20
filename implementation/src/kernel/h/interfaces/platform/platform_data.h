@@ -46,6 +46,15 @@ typedef struct
 
 }platform_restrict_interrupt_t;
 
+typedef struct
+{
+	char *name;
+	void *addr;
+	size_t priority;
+	size_t stack_size;
+
+}elf_entry_t;
+
 typedef struct platform_data
 {
 	/* these first few properties are meaningless to the system, they are only for human consumption */
@@ -61,6 +70,8 @@ typedef struct platform_data
 	platform_restrict_interrupt_t *restricted_interrupts;	/**< interrupt numbers the processes aren't allowed to attach */
 	size_t num_restricted_interrupts;
 	
+	elf_entry_t *elves;			/**< default elf files to load */
+	size_t num_elves;
 	
 
 }platform_data_t;

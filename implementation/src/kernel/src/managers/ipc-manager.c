@@ -22,8 +22,8 @@
 
 #define PIPE_IDX_INC(p, idx)		( (idx + 1) % p->max_messages)
 
-#define PIPE_IS_EMPTY(p)			(p->head == p->tail)
-#define PIPE_IS_FULL(p)				(PIPE_IDX_INC(p, p->head) == p->tail)
+#define PIPE_IS_EMPTY(p)			((p->max_messages > 1)?(p->head == p->tail):( p->messages[0].len == 0 ))
+#define PIPE_IS_FULL(p)				( (p->max_messages > 1)?(PIPE_IDX_INC(p, p->head) == p->tail): (p->messages[0].len != 0) )
 
 
 
@@ -75,6 +75,7 @@ ipc_pipe_t * ipcm_pipe_create(char *name, size_t msg_size, size_t max_msgs, size
 	for(size_t msg = 0; msg < max_msgs; msg++)
 	{
 		pipe->messages[msg].message = memlib_malloc(msg_size);
+		pipe->messages[msg].len = 0;
 	}
 	
 	PIPE_LIST_LOCK();
@@ -191,6 +192,7 @@ int ipcm_pipe_read(thread_t *to, size_t id, void *vamsg, size_t *valen)
 	
 	memcpy(dest_msg_pa, pipe->messages[pipe->tail].message, pipe->messages[pipe->tail].len);
 	*dest_len_pa = pipe->messages[pipe->tail].len;
+	pipe->messages[pipe->tail].len = 0;
 	
 	pipe->tail = PIPE_IDX_INC(pipe, pipe->tail);
 	

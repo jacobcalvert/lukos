@@ -74,6 +74,13 @@ void aarch64_svc_handle(size_t cpuno, void *sp)
 			((uint64_t*)frame)[X0_FRAME_OFFSET] = pm_thread_create((char*)vmm_arch_v2p(as->arch_context,(void*)info->name), thread->parent, info->entry, info->arg, info->stack_size,info->priority)?SYSCALL_RESULT_OK:SYSCALL_RESULT_ERROR; 
 			break;	
 		}
+		case SYSCALL_SCHEDULING_THREAD_ID_GET:
+		{
+			size_t *id = (size_t*)vmm_arch_v2p(as->arch_context,(void*)((size_t*)frame)[X1_FRAME_OFFSET]);
+			*id = (size_t) thread;
+			((uint64_t*)frame)[X0_FRAME_OFFSET] = 0;
+			break;
+		}
 		case SYSCALL_INTERRUPT_ATTACH:
 		{
 			size_t irqno = ((size_t*)frame)[X1_FRAME_OFFSET];

@@ -318,7 +318,7 @@ int aarch64_mmu_map_2M(void *tbl, void *va, void *pa, uint64_t attr, aarch64_tab
 	aarch64_mmu_trans_table_indicies_get(va, &L1_INDEX, &L2_INDEX, &L3_INDEX);
 	uint64_t *table = (uint64_t*)tbl;
 	uint64_t entry = 0;
-	if(!IS_ALIGNED_TO(va, PAGE_MASK_2M) || !IS_ALIGNED_TO(pa, PAGE_MASK_2M))
+	if(!IS_ALIGNED_TO(va, PAGE_MASK_4K) || !IS_ALIGNED_TO(pa, PAGE_MASK_4K))
 	{
 		return -1;
 	}
@@ -363,7 +363,7 @@ int aarch64_mmu_map_1G(void *tbl, void *va, void *pa, uint64_t attr, aarch64_tab
 	aarch64_mmu_trans_table_indicies_get(va, &L1_INDEX, &L2_INDEX, &L3_INDEX);
 	uint64_t *table = (uint64_t*)tbl;
 	uint64_t entry = 0;
-	if(!IS_ALIGNED_TO(va, PAGE_MASK_1G) || !IS_ALIGNED_TO(pa, PAGE_MASK_1G))
+	if(!IS_ALIGNED_TO(va, PAGE_MASK_4K) || !IS_ALIGNED_TO(pa, PAGE_MASK_4K))
 	{
 		return -1;
 	}

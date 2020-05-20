@@ -1,7 +1,9 @@
 #include <managers/process-manager.h>
 #include <managers/virtual-memory-manager.h>
 #include <libraries/mem/memlib.h>
+#include <libraries/elf/elflib.h>
 #include <interfaces/os/atomic.h>
+#include <interfaces/platform/platform_data.h>
 
 #include <string.h>
 
@@ -31,15 +33,57 @@ static void process_list_append(process_t *prc);
 
 static thread_t* process_scheduler_run(process_t *p, size_t cpuno);
 
+extern platform_data_t PLATFORM_DATA;
+
+
 void pm_init(size_t max_cpus)
 {
 	MAX_CPUS = max_cpus;
 	CURRENT_THREAD = (thread_t **)memlib_malloc(sizeof(thread_t*)*MAX_CPUS);
 	size_t i = 0;
+	int found_idle = 0;
 	while(i < MAX_CPUS)
 	{
 		CURRENT_THREAD[i++] = NULL;
 	}	
+	
+	i = 0;
+	
+	while(i < PLATFORM_DATA.num_elves)
+	{
+		if(strcmp(PLATFORM_DATA.elves[i].name, "idle") == 0)
+		{
+			found_idle = 1;
+			address_space_t *app_as = vmm_address_space_create();
+			void *entry = NULL;
+			elflib_binary_load((void*)PLATFORM_DATA.elves[i].addr, app_as, &entry);
+			process_t *app = pm_process_create(PLATFORM_DATA.elves[i].name, app_as, PM_SCHEDULER_PRIORITY, PLATFORM_DATA.elves[i].priority);
+			for(size_t cpuno = 0; cpuno < max_cpus; cpuno++)
+			{
+				pm_thread_affinity_set(pm_thread_create(PLATFORM_DATA.elves[i].name, app, entry, (void*)cpuno, PLATFORM_DATA.elves[i].stack_size, PLATFORM_DATA.elves[i].priority),  PM_THREAD_AFF_CORE(cpuno));
+
+			}
+			pm_process_schedule(app);
+			
+		}
+		else
+		{
+			address_space_t *app_as = vmm_address_space_create();
+			void *entry = NULL;
+			elflib_binary_load((void*)PLATFORM_DATA.elves[i].addr, app_as, &entry);
+			process_t *app = pm_process_create(PLATFORM_DATA.elves[i].name, app_as, PM_SCHEDULER_PRIORITY, PLATFORM_DATA.elves[i].priority);
+			pm_thread_create(PLATFORM_DATA.elves[i].name, app, entry, NULL, PLATFORM_DATA.elves[i].stack_size, PLATFORM_DATA.elves[i].priority);
+			pm_process_schedule(app);
+		}
+		
+		i++;
+	}
+	
+	while(!found_idle)/* stop here if we don't have an idle process */
+	{
+	}
+	
+	
 }
 
 process_t *pm_process_create(char *name, address_space_t *as, process_scheduler_t scheduler, size_t priority)
