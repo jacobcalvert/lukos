@@ -52,7 +52,7 @@ mkromfs:
 	echo "[ROMFS] Generating ROMFS"
 	genromfs -f ./src/apps/$(APP_NAME)/bin/romfs.img -d ./src/apps/$(APP_NAME)/romfs
 	echo "[XXD] Generating romfs-bin.c"
-	echo "char __romfs_data[]  __attribute__( ( aligned ( 16 ) ) )  = { " > src/apps/$(APP_NAME)/romfs-bin.c
+	echo "char __romfs_data[] = { " > src/apps/$(APP_NAME)/romfs-bin.c
 	xxd -i < ./src/apps/$(APP_NAME)/bin/romfs.img >> src/apps/$(APP_NAME)/romfs-bin.c
 	echo " }; " >> src/apps/$(APP_NAME)/romfs-bin.c
 	

@@ -95,7 +95,10 @@ exception_halt:
 	ldr x0, =KERNEL_LOW_ADDR_MAP
 	ldr x0, [x0]
 	msr ttbr0_el1, x0
+	/* invalidate the tlb cache */
+	tlbi vmalle1
 	isb
+	dsb sy
 .endm
 
 /**

@@ -31,6 +31,7 @@ static platform_restrict_range_t ranges[] = {
 	
 extern char __io_server;
 extern char __idle;
+extern char __romfs_server;
 	
 static elf_entry_t myelves[] = {
 	{
@@ -46,6 +47,13 @@ static elf_entry_t myelves[] = {
 		.priority = (size_t)-2,
 		.stack_size = 0x1000
 
+	},
+	{
+		.name = "romfs-server",
+		.addr = &__romfs_server,
+		.priority = 60,
+		.stack_size = 0x8000
+	
 	}
 };
 

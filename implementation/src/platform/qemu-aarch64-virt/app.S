@@ -8,3 +8,9 @@ __io_server:
 .global __idle
 __idle:
 		.incbin "./src/platform/qemu-aarch64-virt/000-basic.elf"
+		
+		
+.align 12
+.global __romfs_server
+__romfs_server:
+		.incbin "./src/platform/qemu-aarch64-virt/101-romfs-server.elf"

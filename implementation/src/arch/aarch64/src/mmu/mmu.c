@@ -452,7 +452,7 @@ void *aarch64_mmu_v2p(void *pTable, void *va)
 				else
 				{
 					/* block 2MB */
-					entry&= PAGE_MASK_2M;
+					entry&= PAGE_MASK_4K;
 					entry += (~PAGE_MASK_2M & (uint64_t)va);
 					pa = (void*) entry;
 				}
@@ -462,7 +462,7 @@ void *aarch64_mmu_v2p(void *pTable, void *va)
 		else
 		{
 			/*block 1GB */
-			entry&= PAGE_MASK_1G;
+			entry&= PAGE_MASK_4K;
 			entry += (~PAGE_MASK_1G & (uint64_t)va);
 			pa = (void*) entry;
 		

@@ -32,35 +32,31 @@ romfs_hdr_t *romfs_load(void *base)
 
 void romfs_iterate_files(romfs_hdr_t *hdr, romfs_file_iter_t iter)
 {
-	char *end_hdr = (char*)(size_t)hdr + 16;
+	char *end_hdr = hdr->name;
 	while(*end_hdr != '\0') end_hdr++;
 	romfs_file_hdr_t *fhdr = (romfs_file_hdr_t*) UPALIGN_16B(end_hdr);
 	
 	while(fhdr->next_off)
 	{
-		char *name = (char*)(size_t)fhdr + 16;
+		char *name = (char*)(size_t)hdr + 16;
 		uint32_t size = be32(fhdr->size);
 		char *end_name = name;
 		while(*end_name != '\0')end_name++;
 		
 		void *base = (void*)UPALIGN_16B(end_name);
-		if(size != 0)
-		{
-			iter(name, base, size);
-		}
-		fhdr = (romfs_file_hdr_t*)((size_t)hdr + (be32(fhdr->next_off) & 0xFFFFFFF0) );
+		iter(name, base, size);
+		
+		fhdr = (romfs_file_hdr_t*)((size_t)fhdr + be32(fhdr->next_off & 0xFFFFFFF0));
 		
 	}
 	
-	char *name = (char*)(size_t)fhdr + 16;
+	char *name = fhdr->name;
 	uint32_t size = be32(fhdr->size);
 	char *end_name = name;
 	while(*end_name != '\0')end_name++;
+
 	void *base = (void*)UPALIGN_16B(end_name);
-	if(size != 0)
-	{
-		iter(name, base, size);
-	}
+	iter(name, base, size);
 
 	
 

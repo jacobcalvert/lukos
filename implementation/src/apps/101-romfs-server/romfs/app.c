@@ -13,7 +13,7 @@ void server_start(romfs_hdr_t *hdr);
 
 extern const char *__romfs_data;
 
-static int initial_iterator(char *name, void *base, uint32_t length);
+
 
 int main(void *arg)
 {
@@ -29,12 +29,6 @@ int main(void *arg)
 	
 	while(1);
 }
-
-int initial_iterator(char *name, void *base, uint32_t length)
-{
-	printf("romfs-server: found file %s @ %p (%.2fkiB)\r\n", name, base, (float)length/1024.0);
-	return 1;
-}	
 
 
 
@@ -66,7 +60,7 @@ void server_start(romfs_hdr_t *hdr)
 	size_t rq_pipe = 0;
 	syscall_ipc_pipe_create("romfs-server/requests", sizeof(rs_request_t), 64, 0);
 	syscall_ipc_pipe_id_get("romfs-server/requests", &rq_pipe);
-	romfs_iterate_files(hdr, initial_iterator);
+	
 	while(1)
 	{
 		while(syscall_ipc_pipe_read(rq_pipe, &rq, sizeof(rq)) == SYSCALL_RESULT_PIPE_EMPTY); /* wait until we have a request */

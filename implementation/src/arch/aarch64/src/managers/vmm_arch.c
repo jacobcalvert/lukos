@@ -33,7 +33,7 @@ void *vmm_arch_context_create(address_space_t *as)
 void *vmm_arch_get_free_va_range(void *ctx, size_t len)
 {
 	size_t no_pages[3] = 	{0, 0, 	0};
-	size_t pg_sizes[3] = 	{PAGE_SIZE_4K, PAGE_SIZE_2M, PAGE_SIZE_1G};
+	size_t pg_sizes[3] = 	{PAGE_SIZE_1G, PAGE_SIZE_2M, PAGE_SIZE_4K};
 	size_t pgszi = 2;
 	size_t local_len = len;
 	while(local_len >= PAGE_SIZE_1G)

@@ -119,8 +119,8 @@ bool pl011_initialize_global(PL011_t *config)
 }
 
 
-#define STDIO_PIPE		"stdio"
-#define STDER_PIPE		"stderr"
+#define STDOUT_PIPE		"stdout"
+#define STDERR_PIPE		"stderr"
 #define STDIN_PIPE		"stdin"
 
 #define BUFFER_SIZE		256
@@ -130,7 +130,7 @@ bool pl011_initialize_global(PL011_t *config)
 void main(int argc, char **argv)
 {
 	PL011_t driver;
-	size_t stdio_pipe = 0;
+	size_t stdout_pipe = 0;
 	size_t stderr_pipe = 0;
 	size_t stdin_pipe = 0;
 	char buf[BUFFER_SIZE];
@@ -148,14 +148,14 @@ void main(int argc, char **argv)
 	pl011_initialize_global(&driver);
 	
 	
-	syscall_ipc_pipe_create(STDIO_PIPE, BUFFER_SIZE, NO_BUFFERS, 0);
-	syscall_ipc_pipe_id_get(STDIO_PIPE, &stdio_pipe);
+	syscall_ipc_pipe_create(STDOUT_PIPE, BUFFER_SIZE, NO_BUFFERS, 0);
+	syscall_ipc_pipe_id_get(STDOUT_PIPE, &stdout_pipe);
 	
-	syscall_ipc_pipe_write(stdio_pipe, "hello", 5);
+	syscall_ipc_pipe_write(stdout_pipe, "hello\r\n", 7);
 	
 	while(1)
 	{
-		syscall_ipc_pipe_read(stdio_pipe, buf, &len);
+		while(syscall_ipc_pipe_read(stdout_pipe, buf, &len) ==  SYSCALL_RESULT_PIPE_EMPTY);
 		buf[len] = '\0';
 		pl011_write((void*)&driver, buf, len);
 	}

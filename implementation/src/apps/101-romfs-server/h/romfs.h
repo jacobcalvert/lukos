@@ -10,7 +10,6 @@ typedef struct __attribute__((packed))
 	char magic[8];
 	uint32_t full_size;
 	uint32_t checksum;
-	char* name;
 
 }romfs_hdr_t;
 
@@ -21,7 +20,6 @@ typedef struct __attribute__((packed))
 	uint32_t spec_info;
 	uint32_t size;
 	uint32_t checksum;
-	char *name;
 
 }romfs_file_hdr_t;
 
