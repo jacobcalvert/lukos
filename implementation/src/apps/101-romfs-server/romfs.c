@@ -35,12 +35,16 @@ void romfs_iterate_files(romfs_hdr_t *hdr, romfs_file_iter_t iter)
 	char *end_hdr = (char*)(size_t)hdr + 16;
 	while(*end_hdr != '\0') end_hdr++;
 	romfs_file_hdr_t *fhdr = (romfs_file_hdr_t*) UPALIGN_16B(end_hdr);
-	
-	while(fhdr->next_off)
+	int done = 0;
+	while(!done)
 	{
 		char *name = (char*)(size_t)fhdr + 16;
 		uint32_t size = be32(fhdr->size);
 		char *end_name = name;
+		uint32_t next_off = (be32(fhdr->next_off) & 0xFFFFFFF0);
+		uint32_t attr = (be32(fhdr->next_off) & 0x0F);
+		int executable = attr & (1<<3);
+		
 		while(*end_name != '\0')end_name++;
 		
 		void *base = (void*)UPALIGN_16B(end_name);
@@ -48,18 +52,15 @@ void romfs_iterate_files(romfs_hdr_t *hdr, romfs_file_iter_t iter)
 		{
 			iter(name, base, size);
 		}
-		fhdr = (romfs_file_hdr_t*)((size_t)hdr + (be32(fhdr->next_off) & 0xFFFFFFF0) );
+		if(next_off == 0)
+		{
+			done = 1;
+		}
+		else
+		{
+			fhdr = (romfs_file_hdr_t*)((size_t)hdr + next_off );
+		}
 		
-	}
-	
-	char *name = (char*)(size_t)fhdr + 16;
-	uint32_t size = be32(fhdr->size);
-	char *end_name = name;
-	while(*end_name != '\0')end_name++;
-	void *base = (void*)UPALIGN_16B(end_name);
-	if(size != 0)
-	{
-		iter(name, base, size);
 	}
 
 	

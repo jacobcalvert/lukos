@@ -6,11 +6,23 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-void interrupt_handler(size_t irqno)
-{
 
-	syscall_interrupt_complete();
-}
+#define STDOUT_PIPE		"stdout"
+#define STDERR_PIPE		"stderr"
+#define STDIN_PIPE		"stdin"
+
+#define BUFFER_SIZE		256
+#define NO_BUFFERS		10
+
+
+
+
+size_t stdout_pipe = 0;
+size_t stderr_pipe = 0;
+size_t stdin_pipe = 0;
+char stdout_buffer[BUFFER_SIZE];
+char stdin_buffer[BUFFER_SIZE];
+size_t len = 0;
 
 typedef struct
 {
@@ -42,6 +54,8 @@ typedef struct
 	char *uuid;
 
 }PL011_t;
+
+PL011_t driver;
 
 static bool pl011_initialize_global(PL011_t *config);
 static bool pl011_open(void* cfg, char *opts);
@@ -112,36 +126,68 @@ bool pl011_initialize_global(PL011_t *config)
 	
 	config->regs->LCR_H |= ( (1<<5) | (1<<6) ); /* 8n1 */
 	config->regs->CR |= ( (1<<8) | (1<<9) ); /* TX and RX enabled */
-	
 
 	config->regs->CR |= 1; /* enable */
 	return true;
 }
 
+void stdin_thread(void *arg);
 
-#define STDOUT_PIPE		"stdout"
-#define STDERR_PIPE		"stderr"
-#define STDIN_PIPE		"stdin"
 
-#define BUFFER_SIZE		256
-#define NO_BUFFERS		10
+thread_info_t thread_info = {
 
+	.name = "pl011-stdin-reader",
+	.entry = stdin_thread,
+	.arg = NULL,
+	.stack_size = 0x8000,
+	.priority = 24
+};
+
+
+void stdin_thread(void *arg)
+{
+	size_t flush_interval = 1000;
+	size_t count = 0;
+	while(1)
+	{
+		
+		flush_interval = 1000;
+		
+		
+		while( (driver.regs->FR & (1<<6)) == 0)
+		{
+			flush_interval--;
+			if(flush_interval == 0)
+			{
+				if(count)
+				{
+					/* write data to pipe */
+					syscall_ipc_pipe_write(stdin_pipe, stdin_buffer, count);
+					count = 0;
+				}
+				
+				flush_interval = 1000;
+			}
+		}
+		stdin_buffer[count++] = (driver.regs->DR & 0xFF);
+		
+		if(count == BUFFER_SIZE)
+		{
+			/* write data to pipe */
+			syscall_ipc_pipe_write(stdin_pipe, stdin_buffer, count);
+			count = 0;
+		}
+		
+	
+	}
+}
 
 void main(int argc, char **argv)
 {
-	PL011_t driver;
-	size_t stdout_pipe = 0;
-	size_t stderr_pipe = 0;
-	size_t stdin_pipe = 0;
-	char buf[BUFFER_SIZE];
-	size_t len = 0;
+	
 	driver.reg_size = 0x1000;
 	driver.baud = 115200U;
 	driver.clock = 24000000U;
-	
-	
-	
-	syscall_interrupt_attach(2, interrupt_handler);
 	
 	syscall_device_alloc((void*)0x9000000, driver.reg_size, (void**) &driver.regs);
 	
@@ -151,13 +197,18 @@ void main(int argc, char **argv)
 	syscall_ipc_pipe_create(STDOUT_PIPE, BUFFER_SIZE, NO_BUFFERS, 0);
 	syscall_ipc_pipe_id_get(STDOUT_PIPE, &stdout_pipe);
 	
+	syscall_ipc_pipe_create(STDIN_PIPE, BUFFER_SIZE, NO_BUFFERS, 0);
+	syscall_ipc_pipe_id_get(STDIN_PIPE, &stdin_pipe);
+	
 	syscall_ipc_pipe_write(stdout_pipe, "hello\r\n", 7);
+	
+	syscall_schedule_thread_create(&thread_info);
 	
 	while(1)
 	{
-		while(syscall_ipc_pipe_read(stdout_pipe, buf, &len) ==  SYSCALL_RESULT_PIPE_EMPTY);
-		buf[len] = '\0';
-		pl011_write((void*)&driver, buf, len);
+		while(syscall_ipc_pipe_read(stdout_pipe, stdout_buffer, &len) ==  SYSCALL_RESULT_PIPE_EMPTY);
+		stdout_buffer[len] = '\0';
+		pl011_write((void*)&driver, stdout_buffer, len);
 	}
 
 }
