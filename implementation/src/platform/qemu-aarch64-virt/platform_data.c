@@ -32,6 +32,7 @@ static platform_restrict_range_t ranges[] = {
 extern char __io_server;
 extern char __idle;
 extern char __romfs_server;
+extern char __terminal_server;
 	
 static elf_entry_t myelves[] = {
 	{
@@ -49,12 +50,19 @@ static elf_entry_t myelves[] = {
 
 	},
 	{
+		.name = "terminal-server",
+		.addr = &__terminal_server,
+		.priority = (size_t)50,
+		.stack_size = 0x8000
+
+	}/*
+	{
 		.name = "romfs-server",
 		.addr = &__romfs_server,
 		.priority = 60,
 		.stack_size = 0x8000
 	
-	}
+	}*/
 };
 
 #define NO_ELVES 	sizeof(myelves)/sizeof(myelves[0])

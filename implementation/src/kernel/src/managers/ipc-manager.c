@@ -18,6 +18,9 @@
 #define PIPE_RW_LIST_LOCK(l)		atomic32_spinlock_acquire(&l->lock);
 #define PIPE_RW_LIST_UNLOCK(l)		atomic32_spinlock_release(&l->lock);
 
+#define THREAD_LOCK(t)				atomic32_spinlock_acquire(&t->lock);
+#define THREAD_UNLOCK(t)			atomic32_spinlock_release(&t->lock);
+
 
 
 #define PIPE_IDX_INC(p, idx)		( (idx + 1) % p->max_messages)
@@ -152,7 +155,9 @@ int ipcm_pipe_write(thread_t *from, size_t id, void *vamsg, size_t len)
 		else
 		{
 			rw_list_append(&pipe->writers, from); /* to notify him when we are ready */
+			THREAD_LOCK(from);
 			from->blockers++;
+			THREAD_UNLOCK(from);
 			PIPE_UNLOCK(pipe);
 			return -4;
 		}
@@ -183,7 +188,9 @@ int ipcm_pipe_read(thread_t *to, size_t id, void *vamsg, size_t *valen)
 	if(PIPE_IS_EMPTY(pipe))
 	{
 		rw_list_append(&pipe->readers, to); /* to notify him when we are ready */
+		THREAD_LOCK(to);
 		to->blockers++;
+		THREAD_UNLOCK(to);
 		PIPE_UNLOCK(pipe);
 		return -4;
 	}
@@ -207,14 +214,18 @@ void rw_list_recurse_notify(ipc_pipe_rw_list_node_t *n)
 	if(n != NULL)
 	{
 		rw_list_recurse_notify(n->next);
+		THREAD_LOCK((n->thread));
 		if(n->thread->blockers)n->thread->blockers--;
+		THREAD_UNLOCK((n->thread));
 		memlib_free(n);
+		n = NULL;
 	}
 }
 void rw_list_notify(ipc_pipe_rw_list_t *list)
 {
 	PIPE_RW_LIST_LOCK(list);
 	rw_list_recurse_notify(list->list);
+	list->list = NULL;
 	PIPE_RW_LIST_UNLOCK(list);
 
 }

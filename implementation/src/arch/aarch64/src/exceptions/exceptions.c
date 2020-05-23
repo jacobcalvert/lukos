@@ -161,6 +161,22 @@ void aarch64_svc_handle(size_t cpuno, void *sp)
 			break;
 		};
 		
+		case SYSCALL_IPC_PIPE_INFO_GET:
+		{
+			size_t id = ((size_t*)frame)[X1_FRAME_OFFSET];
+			ipc_pipe_t *pipe = ipcm_pipe_lookup_by_id(id);
+			size_t *msg_size = (size_t*)vmm_arch_v2p(as->arch_context,(void*)((size_t*)frame)[X2_FRAME_OFFSET]);
+			size_t *msg_depth = (size_t*)vmm_arch_v2p(as->arch_context,(void*)((size_t*)frame)[X3_FRAME_OFFSET]);
+			size_t *flags = (size_t*)vmm_arch_v2p(as->arch_context,(void*)((size_t*)frame)[X4_FRAME_OFFSET]);
+			
+			*msg_size = pipe->message_size;
+			*msg_depth = pipe->max_messages;
+			*flags = pipe->flags;
+			((uint64_t*)frame)[X0_FRAME_OFFSET]  = (pipe)?SYSCALL_RESULT_OK:SYSCALL_RESULT_NOT_FOUND;
+			
+			break;
+		}
+		
 		case SYSCALL_IPC_PIPE_WRITE:
 		{
 			size_t id = ((size_t*)frame)[X1_FRAME_OFFSET];

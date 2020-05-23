@@ -33,6 +33,15 @@ syscall_ipc_pipe_id_get:
 	svc #0
 	ret
 	
+.global syscall_ipc_pipe_info_get
+syscall_ipc_pipe_info_get:
+	mov x4, x3
+	mov x3, x2
+	mov x2, x1
+	mov x1, x0
+	mov x0, #SYSCALL_IPC_PIPE_INFO_GET
+	svc #0
+	ret
 
 /**
  * send some data to this pipe

@@ -50,6 +50,7 @@ typedef struct
 	struct process *parent;
 	
 	size_t blockers;
+	uint32_t lock;
 	
 }thread_t;
 

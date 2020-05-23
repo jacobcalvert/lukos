@@ -14,3 +14,9 @@ __idle:
 .global __romfs_server
 __romfs_server:
 		.incbin "./src/platform/qemu-aarch64-virt/101-romfs-server.elf"
+		
+		
+.align 12
+.global __terminal_server
+__terminal_server:
+		.incbin "./src/platform/qemu-aarch64-virt/103-terminal-server.elf"

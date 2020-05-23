@@ -140,7 +140,7 @@ thread_info_t thread_info = {
 	.entry = stdin_thread,
 	.arg = NULL,
 	.stack_size = 0x8000,
-	.priority = 24
+	.priority = 60
 };
 
 

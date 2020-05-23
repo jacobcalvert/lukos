@@ -105,7 +105,19 @@ int elflib_binary_load(void *vakernel, address_space_t *as, void **entry)
 					}
 					vmm_address_space_region_create(as, (void*)section->address, section->size, prop);
 					vmm_address_space_copy_in(as, data, (void*)section->address, section->size);
-				}			
+				}		
+				
+				if(section->type == ELF_SECTION_TYPE_NOBITS)
+				{
+					/* zeroize it */
+					char *ptr = (char*)vmm_arch_v2p(as->arch_context, (void*)section->address);
+					uint64_t i = 0;
+					while(i < section->size)
+					{
+						ptr[i++] = '\0';
+					}
+				
+				}
 			}
 
 			

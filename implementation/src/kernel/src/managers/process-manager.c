@@ -13,6 +13,12 @@
 #define PROCESS_LIST_UNLOCK()		atomic32_spinlock_release(&PROCESS_LIST_LOCK)
 #define PROCESS_LIST_LOCK()			atomic32_spinlock_acquire(&PROCESS_LIST_LOCK)
 
+#define THREAD_LOCK(t)				atomic32_spinlock_acquire(&t->lock);
+#define THREAD_UNLOCK(t)			atomic32_spinlock_release(&t->lock);
+
+
+
+
 typedef struct process_list
 {
 	struct process_list *next;
@@ -112,10 +118,16 @@ thread_t* pm_thread_create(char *name, process_t *prc, void *entry, void *arg, s
 	thread->parent = prc;
 	thread->affinity = PM_THREAD_AFF_NONE;
 	thread->entry = entry;
+	thread->lock = 0;
 	
 	
 	thread->name = (char*)memlib_malloc(strlen(name)+1);
 	memset(thread->name, 0, strlen(name)+1);
+#define THREAD_LOCK(t)				atomic32_spinlock_acquire(&t->lock);
+#define THREAD_UNLOCK(t)			atomic32_spinlock_release(&t->lock);
+
+
+
 	strncpy(thread->name, name, strlen(name));
 	
 	thread->arg = arg;
@@ -160,25 +172,31 @@ thread_t *pm_thread_next_get(size_t cpuno)
 	thread_t *selected = NULL;
 	size_t max = (size_t) -1;
  	PROCESS_LIST_LOCK();
- 	CURRENT_THREAD[cpuno]->flags &= ~PM_THREAD_FLAGS_RUNNING;
+ 	if(CURRENT_THREAD[cpuno] != NULL)
+ 	{
+	 	THREAD_LOCK(CURRENT_THREAD[cpuno]);
+	 	CURRENT_THREAD[cpuno]->flags &= ~PM_THREAD_FLAGS_RUNNING;
+	 	THREAD_UNLOCK(CURRENT_THREAD[cpuno]);
+ 	}
  	process_list_node_t *pPln = PROCESS_LIST;
  	while(pPln != NULL)
  	{
  		process_t *prc = pPln->process;
  		thread = process_scheduler_run(prc, cpuno);
- 		if(thread != NULL && (prc->priority < max))
+ 		if(thread != NULL && (thread->priority < max))
  		{
  			selected = thread;
- 			max = prc->priority;
+ 			max = thread->priority;
  		}
  		
  		pPln =  pPln->next;
  	}
  
  	
+ 	THREAD_LOCK(selected);
  	CURRENT_THREAD[cpuno] = selected;
  	selected->flags |= PM_THREAD_FLAGS_RUNNING;
- 	
+ 	THREAD_UNLOCK(selected);
 	PROCESS_LIST_UNLOCK();
 	
 	return selected;
@@ -203,7 +221,7 @@ thread_t* process_scheduler_run(process_t *prc, size_t cpuno)
 			size_t max = (size_t)-1;
 			while(pTln != NULL)
 			{
-				
+			 	THREAD_LOCK((pTln->thread));
 				if( (pTln->thread->affinity == PM_THREAD_AFF_NONE) || (pTln->thread->affinity & PM_THREAD_AFF_CORE(cpuno)) )
 				{
 					pTln->thread->flags |= PM_THREAD_FLAGS_READY;
@@ -227,6 +245,7 @@ thread_t* process_scheduler_run(process_t *prc, size_t cpuno)
 						}
 					}
 				}
+			 	THREAD_UNLOCK((pTln->thread));
 				pTln = pTln->next;
 			
 			}

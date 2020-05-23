@@ -4,7 +4,6 @@
 #include <stddef.h>
 #include <interfaces/userspace/macros.h>
 
-
 /**
  * create a pipe
  * @param name		the string name of the pipe for named pipes
@@ -20,6 +19,15 @@ KERNEL_SYSCALL4(syscall_ipc_pipe_create, char *name, size_t msg_size, size_t max
  * @param id		out - the retrieved ID
  */
 KERNEL_SYSCALL2(syscall_ipc_pipe_id_get, char *name, size_t *id);
+
+/**
+ * get a pipe's info
+ * @param id		the id of the pipe
+ * @param msg_size	out - the message size of a single message in the pipe
+ * @param max_msgs	out - the max number of messages this pipe should handle
+ * @param flags		out - the configuration of this pipe
+ */
+KERNEL_SYSCALL4(syscall_ipc_pipe_info_get, size_t id, size_t *msg_size, size_t *max_msgs, size_t *flags);
 
 /**
  * send some data to this pipe

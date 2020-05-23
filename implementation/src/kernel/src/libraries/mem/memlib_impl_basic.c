@@ -169,6 +169,7 @@ void *memlib_impl_basic_malloc(void* ctx, size_t n)
 			block = compact_list(context, n); /*if it's null here, we are just out of memory, period */
 		}
 	}
+	block->flags = MARK_USED(block->flags); 
 	size_t addr = ((size_t)block + MARKER_SIZE);
 	atomic32_spinlock_release(&context->lock);
 	return (block==NULL)?NULL:((void*)addr);
