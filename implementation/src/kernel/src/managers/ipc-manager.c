@@ -156,7 +156,7 @@ int ipcm_pipe_write(thread_t *from, size_t id, void *vamsg, size_t len)
 		{
 			rw_list_append(&pipe->writers, from); /* to notify him when we are ready */
 			THREAD_LOCK(from);
-			from->blockers++;
+			from->blocked_by = pipe;
 			THREAD_UNLOCK(from);
 			PIPE_UNLOCK(pipe);
 			return -4;
@@ -189,7 +189,7 @@ int ipcm_pipe_read(thread_t *to, size_t id, void *vamsg, size_t *valen)
 	{
 		rw_list_append(&pipe->readers, to); /* to notify him when we are ready */
 		THREAD_LOCK(to);
-		to->blockers++;
+		to->blocked_by = pipe;
 		THREAD_UNLOCK(to);
 		PIPE_UNLOCK(pipe);
 		return -4;
@@ -215,7 +215,7 @@ void rw_list_recurse_notify(ipc_pipe_rw_list_node_t *n)
 	{
 		rw_list_recurse_notify(n->next);
 		THREAD_LOCK((n->thread));
-		if(n->thread->blockers)n->thread->blockers--;
+		n->thread->blocked_by = NULL;
 		THREAD_UNLOCK((n->thread));
 		memlib_free(n);
 		n = NULL;

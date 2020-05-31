@@ -23,6 +23,12 @@ KERNEL_SYSCALL0(syscall_schedule_yield);
 
 
 /**
+ * sleep for a given number of ticks
+ */
+KERNEL_SYSCALL1(syscall_schedule_sleep_ticks, size_t ticks);
+
+
+/**
  * create a new thread of execution
  */
 KERNEL_SYSCALL1(syscall_schedule_thread_create, thread_info_t *tinfo);

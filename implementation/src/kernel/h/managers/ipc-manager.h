@@ -47,7 +47,7 @@ typedef struct
 
 
 
-typedef struct 
+typedef struct ipc_pipe
 {
 	char *name;					/**< string name, useful for well-known services */
 	size_t id;					/**< id, useful for automated pipe bringup */

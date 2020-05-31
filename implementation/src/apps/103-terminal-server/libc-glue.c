@@ -49,7 +49,7 @@ void libc_init(void)
 	syscall_schedule_thread_id_get(&root_thread_info.thread_id);
 	root_thread_info.next = NULL;
 	
-	syscall_ipc_pipe_create(THREAD_INFO_MUTEX_NAME, sizeof(size_t), 1, 0);
+	syscall_ipc_pipe_create(THREAD_INFO_MUTEX_NAME, sizeof(size_t), 1, (0<<16));
 	syscall_ipc_pipe_id_get(THREAD_INFO_MUTEX_NAME, &THREAD_INFO_LIST_MUTEX_ID);
 	syscall_ipc_pipe_write(THREAD_INFO_LIST_MUTEX_ID, &THREAD_INFO_LIST_MUTEX_ID, sizeof(size_t)); /* give the initial token */
 	
@@ -71,29 +71,42 @@ void thread_info_list_append(libc_thread_info_node_t *thinfo)
 	*pTln = thinfo;
 	THREAD_INFO_MUTEX_UNLOCK(token);
 }
+typedef struct
+{
+	thread_info_t* info;
+	libc_thread_info_node_t *node;
 
+}libc_thread_info_t;
 
 void libc_thread_start(thread_info_t* params)
 {
+	/* allocate a shim info structure */
 	thread_info_t *shim_info = (thread_info_t*)malloc(sizeof(thread_info_t));
+	/* allocate a libc info structure */
+	libc_thread_info_t *ltinfo = (libc_thread_info_t*)malloc(sizeof(libc_thread_info_t));
+	/* set the entry to our commone entry point */
 	shim_info->entry = libc_thread_entry;
-	shim_info->arg = (void*) params;
+	/* thread name, stack size, priority is passed along */
 	shim_info->name = params->name;
 	shim_info->stack_size = params->stack_size;
 	shim_info->priority = params->priority;
-	
+	/* set the libc thread info to the destination thread */
+	ltinfo->info = params;
+	ltinfo->node = (libc_thread_info_node_t*)malloc(sizeof(libc_thread_info_node_t));
+	ltinfo->node->reent = (struct _reent)_REENT_INIT(ltinfo->node->reent);
+	ltinfo->node->next = NULL;
+	shim_info->arg = (void*) ltinfo;
+	thread_info_list_append(ltinfo->node);
 	syscall_schedule_thread_create(shim_info);
 }
 
 void libc_thread_entry(void *arg)
 {
 	/* common entry point for all libc spawned threads */
-	thread_info_t *info = (thread_info_t*)arg;
-	libc_thread_info_node_t *tin = (libc_thread_info_node_t*)malloc(sizeof(libc_thread_info_node_t));
-	tin->reent = (struct _reent)_REENT_INIT(tin->reent);
+	libc_thread_info_t *ltinfo = (libc_thread_info_t*)arg;
+	thread_info_t *info = (thread_info_t*)ltinfo->info;
+	libc_thread_info_node_t *tin = ltinfo->node;
 	syscall_schedule_thread_id_get(&tin->thread_id);
-	tin->next = NULL;
-	thread_info_list_append(tin);
 	info->entry(info->arg);
 }
 

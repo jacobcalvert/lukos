@@ -38,6 +38,9 @@ static void libc_thread_entry(void *arg);
 
 static size_t file_handles[3] = {0, 0, 0};
 
+static size_t termsrv_reply_pipe;
+static size_t termsrv_req_pipe;
+
 void libc_init(void)
 {
 	void *lHeap = NULL;
@@ -55,6 +58,18 @@ void libc_init(void)
 	
 	
 	THREAD_INFO_LIST = &root_thread_info;
+	
+	syscall_ipc_pipe_create("terminal-server/romfs/reply", sizeof(size_t)*3, 1, 0);
+	while(syscall_ipc_pipe_id_get("terminal-server/romfs/reply", &termsrv_reply_pipe) == SYSCALL_RESULT_NOT_FOUND);
+	while(syscall_ipc_pipe_id_get("terminal-server/request", &termsrv_req_pipe) == SYSCALL_RESULT_NOT_FOUND);
+	
+	while(syscall_ipc_pipe_write(termsrv_req_pipe, "romfs", 5) == SYSCALL_RESULT_PIPE_FULL);
+	size_t n;
+	while(syscall_ipc_pipe_read(termsrv_reply_pipe, file_handles, &n) == SYSCALL_RESULT_PIPE_EMPTY);
+	
+	
+	
+	
 
 }
 
@@ -151,15 +166,6 @@ return -1;
 }
 int _fstat(int file, struct stat *st)
 {	
-	
-	switch(file)
-	{
-		case 0: syscall_ipc_pipe_id_get("stdin", &file_handles[file]);break;
-		case 1: syscall_ipc_pipe_id_get("stdout", &file_handles[file]);break;
-		case 2: syscall_ipc_pipe_id_get("stderr", &file_handles[file]);break;
-		default: return -1;
-	
-	}
 	st->st_dev = file;
 	return 0;
 }

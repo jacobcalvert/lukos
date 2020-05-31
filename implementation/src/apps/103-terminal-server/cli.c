@@ -238,6 +238,7 @@ void cli_loop(cli_t *cli)
 				default:
 				{
 					cli->current_line[cli->current_line_pointer++] = c;
+					while(cli->tx == NULL);
 					cli->tx(c);
 					break;
 				}
@@ -304,6 +305,7 @@ void cli_puts(cli_t *cli, char *str)
 {
 	while(*str)
 	{
+		while(cli->tx == NULL);
 		cli->tx(*str++);
 	}
 }

@@ -117,9 +117,28 @@
 
 #ifndef __ASSEMBLER__
 
-extern void *KERNEL_LOW_ADDR_MAP;
-extern void *KERNEL_LOW_EXE_ADDR_MAP;
-extern void *KERNEL_HIGH_ADDR_MAP;
+
+#include <interfaces/os/atomic.h>
+#include <stdint.h>
+
+#define TABLE_LOCK(tbl)					(atomic32_spinlock_acquire(&tbl->lock))
+#define TABLE_UNLOCK(tbl)					(atomic32_spinlock_release(&tbl->lock))
+
+typedef struct
+{
+	uint64_t *translation_table;
+	
+	void * table_space;
+	size_t table_space_len;
+	
+	uint32_t lock;
+	
+}aarch64_vmm_context_t;
+
+
+extern aarch64_vmm_context_t KERNEL_LOW_ADDR_MAP;
+extern aarch64_vmm_context_t KERNEL_LOW_EXE_ADDR_MAP;
+extern aarch64_vmm_context_t KERNEL_HIGH_ADDR_MAP;
 
 typedef void *(*aarch64_table_allocator_t)(void* arg);
 ;
@@ -139,20 +158,20 @@ void *aarch64_mmu_stack_create(size_t cpuno);
  * @param va		the VA
  * @return the PA
  */
-void *aarch64_mmu_v2p(void *table, void *va);
+void *aarch64_mmu_v2p(aarch64_vmm_context_t *table, void *va);
 
 /**
  * map a device (auto selects the VA)
  */
-int aarch64_mmu_device_map(void * table, void *pa, size_t size, aarch64_table_allocator_t alloc, void *arg, void **vaout);
+int aarch64_mmu_device_map(aarch64_vmm_context_t * table, void *pa, size_t size, aarch64_table_allocator_t alloc, void *arg, void **vaout);
 
 /**
  * 
  */
-int aarch64_mmu_map_space(void *table, void *va_start, void*pa_start, size_t len, size_t attr, aarch64_table_allocator_t alloc, void *arg);
-int aarch64_mmu_map_4K(void *table, void *va, void *pa, uint64_t attr, aarch64_table_allocator_t alloc, void *arg);
-int aarch64_mmu_map_2M(void *table, void *va, void *pa, uint64_t attr, aarch64_table_allocator_t alloc, void *arg);
-int aarch64_mmu_map_1G(void *table, void *va, void *pa, uint64_t attr, aarch64_table_allocator_t alloc, void *arg);
+int aarch64_mmu_map_space(aarch64_vmm_context_t *table, void *va_start, void*pa_start, size_t len, size_t attr, aarch64_table_allocator_t alloc, void *arg);
+int aarch64_mmu_map_4K(aarch64_vmm_context_t *table, void *va, void *pa, uint64_t attr, aarch64_table_allocator_t alloc, void *arg);
+int aarch64_mmu_map_2M(aarch64_vmm_context_t *table, void *va, void *pa, uint64_t attr, aarch64_table_allocator_t alloc, void *arg);
+int aarch64_mmu_map_1G(aarch64_vmm_context_t *table, void *va, void *pa, uint64_t attr, aarch64_table_allocator_t alloc, void *arg);
 
 void aarch64_mmu_trans_table_indicies_get(void *virtaddr, size_t *l1, size_t *l2, size_t *l3);
 

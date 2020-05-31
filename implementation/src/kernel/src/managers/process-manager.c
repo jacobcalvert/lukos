@@ -119,13 +119,11 @@ thread_t* pm_thread_create(char *name, process_t *prc, void *entry, void *arg, s
 	thread->affinity = PM_THREAD_AFF_NONE;
 	thread->entry = entry;
 	thread->lock = 0;
+	thread->blocked_by = NULL;
 	
 	
 	thread->name = (char*)memlib_malloc(strlen(name)+1);
 	memset(thread->name, 0, strlen(name)+1);
-#define THREAD_LOCK(t)				atomic32_spinlock_acquire(&t->lock);
-#define THREAD_UNLOCK(t)			atomic32_spinlock_release(&t->lock);
-
 
 
 	strncpy(thread->name, name, strlen(name));
@@ -225,12 +223,17 @@ thread_t* process_scheduler_run(process_t *prc, size_t cpuno)
 				if( (pTln->thread->affinity == PM_THREAD_AFF_NONE) || (pTln->thread->affinity & PM_THREAD_AFF_CORE(cpuno)) )
 				{
 					pTln->thread->flags |= PM_THREAD_FLAGS_READY;
-					
-					if(pTln->thread->blockers != 0)
+					if(pTln->thread->sleep_ticks)pTln->thread->sleep_ticks--;
+					if(pTln->thread->blocked_by != NULL)
 					{
 						pTln->thread->flags &= ~PM_THREAD_FLAGS_READY;
 					}
 					
+					if(pTln->thread->sleep_ticks != 0)
+					{
+						pTln->thread->flags &= ~PM_THREAD_FLAGS_READY;
+					}
+			
 					if(pTln->thread->flags & PM_THREAD_FLAGS_RUNNING)
 					{
 						pTln->thread->flags &= ~PM_THREAD_FLAGS_READY;

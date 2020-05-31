@@ -4,7 +4,7 @@
 #include <managers/process-manager.h>
 #include <managers/interrupt-manager.h>
 #include <managers/ipc-manager.h>
-#include <managers/vmm_arch.h>
+#include <mmu/mmu.h>
 #include <userspace/syscall_numbers.h>
 #include <interfaces/userspace/memory.h>
 #include <interfaces/userspace/device.h>
@@ -12,6 +12,10 @@
 #include <interfaces/userspace/interrupt.h>
 #include <interfaces/userspace/ipc.h>
 #include <interfaces/platform/platform_data.h>
+
+#define THREAD_LOCK(t)				atomic32_spinlock_acquire(&t->lock);
+#define THREAD_UNLOCK(t)			atomic32_spinlock_release(&t->lock);
+
 
 
 #define MAX_CPUS		8
@@ -66,12 +70,28 @@ void aarch64_svc_handle(size_t cpuno, void *sp)
 		case SYSCALL_SCHEDULING_SLEEP:
 		{
 			((uint64_t*)frame)[X0_FRAME_OFFSET] = SYSCALL_RESULT_OK;
+			size_t ticks = ((size_t*)frame)[X1_FRAME_OFFSET];
+			THREAD_LOCK(thread);
+			thread->sleep_ticks = PLATFORM_DATA.max_cpus *(ticks+1);
+			THREAD_UNLOCK(thread);
+			aarch64_scheduling_interrupt(cpuno, 0);
+			load_ttbr0 = 0;
+			
 			break;
 		};
 		case SYSCALL_SCHEDULING_THREAD_CREATE:
 		{
-			thread_info_t *info = (thread_info_t*)vmm_arch_v2p(as->arch_context,(void*)((size_t*)frame)[X1_FRAME_OFFSET]);
-			((uint64_t*)frame)[X0_FRAME_OFFSET] = pm_thread_create((char*)vmm_arch_v2p(as->arch_context,(void*)info->name), thread->parent, info->entry, info->arg, info->stack_size,info->priority)?SYSCALL_RESULT_OK:SYSCALL_RESULT_ERROR; 
+			size_t struct_va_ptr = ((size_t*)frame)[X1_FRAME_OFFSET];
+			size_t ptrsz = sizeof(void*);
+			size_t sizesz = sizeof(size_t);
+			size_t struct_va = *(size_t*)vmm_arch_v2p(as->arch_context, (void*)struct_va_ptr);
+			char *name = (char *)vmm_arch_v2p(as->arch_context, (void*)struct_va);
+			void **entry = (void*)vmm_arch_v2p(as->arch_context, (void*)(struct_va_ptr + ptrsz));
+			void **arg = (void**)vmm_arch_v2p(as->arch_context, (void*)(struct_va_ptr + 2*ptrsz));
+			size_t *stack_size = (size_t*)vmm_arch_v2p(as->arch_context, (void*)(struct_va_ptr + 3*ptrsz));
+			size_t *pri = (size_t*)vmm_arch_v2p(as->arch_context, (void*)(struct_va_ptr + 3*ptrsz + sizesz));
+			
+			((uint64_t*)frame)[X0_FRAME_OFFSET] = pm_thread_create(name, thread->parent, *entry, *arg, *stack_size, *pri)?SYSCALL_RESULT_OK:SYSCALL_RESULT_ERROR; 
 			break;	
 		}
 		case SYSCALL_SCHEDULING_THREAD_ID_GET:

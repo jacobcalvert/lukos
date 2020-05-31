@@ -20,8 +20,8 @@ syscall_schedule_yield:
  * int syscall_schedule_sleep(size_t ticks);
  */
  
-.global syscall_schedule_sleep
-syscall_schedule_sleep:
+.global syscall_schedule_sleep_ticks
+syscall_schedule_sleep_ticks:
 	mov x1, x0
 	mov x0, #SYSCALL_SCHEDULING_SLEEP
 	svc #0

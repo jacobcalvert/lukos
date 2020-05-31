@@ -93,10 +93,10 @@ int elflib_binary_load(void *vakernel, address_space_t *as, void **entry)
 		{
 			elf64_section_hdr_t *section = (elf64_section_hdr_t*)((size_t)elf + (elf->shdr_off) + (elf->shdrsz*section_index));
 			void *data = (void*)((size_t)elf + section->offset);
-			if( (section->type == ELF_SECTION_TYPE_PROGBITS) || (section->type == ELF_SECTION_TYPE_NOBITS) )
+			if( (section->type == ELF_SECTION_TYPE_PROGBITS) || (section->type == ELF_SECTION_TYPE_NOBITS))
 			{
 				/* we want to allocate for this section */
-				if(section->flags & ELF_SECTION_FLAG_ALLOC)
+				if((section->flags & ELF_SECTION_FLAG_ALLOC) && (section->size))
 				{
 					address_space_region_prop_t prop = AS_REGION_RX;
 					if(section->flags & ELF_SECTION_FLAG_WRITEABLE)

@@ -90,15 +90,13 @@ void aarch64_aux_cpu_start(size_t cpuno, size_t type)
 		
 			extern char aarch64_psci_init;
 			extern char aarch64_switch_as;
-			extern void *KERNEL_HIGH_ADDR_MAP;
-			extern void *KERNEL_LOW_ADDR_MAP;
-			extern void *KERNEL_LOW_EXE_ADDR_MAP;
+			
 			struct psci_info
 			{
 				void *sp;
-				void *ttbr0_rw;
-				void *ttbr0_rx;
-				void *ttbr1;
+				uint64_t *ttbr0_rw;
+				uint64_t *ttbr0_rx;
+				uint64_t *ttbr1;
 				uint64_t mair;
 				uint64_t tcr;
 				void (*next_vaddr)(void);
@@ -106,16 +104,16 @@ void aarch64_aux_cpu_start(size_t cpuno, size_t type)
 			
 			struct psci_info ctx;
 			ctx.sp = (void*)((uint64_t)aarch64_mmu_stack_create(cpuno) + 0x4000); /* HACK: offset to stack end */
-			ctx.ttbr0_rw = KERNEL_LOW_ADDR_MAP;
-			ctx.ttbr0_rx = KERNEL_LOW_EXE_ADDR_MAP;
-			ctx.ttbr1 = KERNEL_HIGH_ADDR_MAP;
+			ctx.ttbr0_rw = KERNEL_LOW_ADDR_MAP.translation_table;
+			ctx.ttbr0_rx = KERNEL_LOW_EXE_ADDR_MAP.translation_table;
+			ctx.ttbr1 = KERNEL_HIGH_ADDR_MAP.translation_table;
 			ctx.mair = MAIR_EL1_DEFAULT;
 			ctx.tcr = TCR_EL1_DEFAULT;
 			ctx.next_vaddr = (void*)&aarch64_switch_as;
 			register uint64_t command = 0xC4000003;
 			register uint64_t target = cpuno;
-			register uint64_t entry = (uint64_t)aarch64_mmu_v2p(KERNEL_HIGH_ADDR_MAP, &aarch64_psci_init);
-			register uint64_t context = (uint64_t)aarch64_mmu_v2p(KERNEL_HIGH_ADDR_MAP, &ctx);
+			register uint64_t entry = (uint64_t)aarch64_mmu_v2p(&KERNEL_HIGH_ADDR_MAP, &aarch64_psci_init);
+			register uint64_t context = (uint64_t)aarch64_mmu_v2p(&KERNEL_HIGH_ADDR_MAP, &ctx);
 			
 			hvc4args(command, target, entry, context);
 			

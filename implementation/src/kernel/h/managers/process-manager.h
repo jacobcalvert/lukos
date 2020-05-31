@@ -34,7 +34,7 @@
 #define PM_THREAD_AFF_CORE(n)			(1<<n)
 
 struct process;
-
+struct ipc_pipe;
 typedef struct
 {
 
@@ -49,8 +49,10 @@ typedef struct
 	size_t affinity;
 	struct process *parent;
 	
-	size_t blockers;
+	struct ipc_pipe *blocked_by;
+	size_t sleep_ticks;
 	uint32_t lock;
+	
 	
 }thread_t;
 

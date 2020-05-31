@@ -6,6 +6,7 @@
 #include <interrupt-controllers/interrupt-controller.h>
 #include <exceptions/exceptions.h>
 #include <string.h>
+#include <mmu/mmu.h>
 
 #define SPSR_FRAME_OFFSET	(64U)
 #define ELR_FRAME_OFFSET	(65U)
