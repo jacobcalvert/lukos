@@ -4,11 +4,13 @@
 #include <libraries/fdt/fdtlib.h>
 #include <libraries/mem/memlib.h>
 #include <mmu/mmu.h>
+#include <mmu/page-pool.h>
 #include <string.h>
 
 #define SIZE_4K				(1<<12)
 #define SIZE_2M				(1<<21)
 #define UPALIGN_4K(n)		( ( ((uint64_t)n & 0xFFFFFFFFFFFFF000) == (uint64_t)n )?(uint64_t)n:(((uint64_t)n & (uint64_t)0xFFFFFFFFFFFFF000) + (uint64_t)0x1000))
+#define UPALIGN_2M(n)		( ( ((uint64_t)n & 0xFFFFFFFFFFE00000) == (uint64_t)n )?(uint64_t)n:(((uint64_t)n & (uint64_t)0xFFFFFFFFFFE00000) + (uint64_t)0x0000000000200000))
 
 #define IS_ALIGNED_TO(addr, mask)		( (	(size_t)addr & (size_t)mask	) == (size_t)addr ) 
 
@@ -21,6 +23,8 @@ static int fdt_memory_node_finder_cb(char *path, void *arg);
 
 static size_t KERNEL_TABLE_BASE = 0;
 
+page_pool_t *PP4K = NULL;
+page_pool_t *PP2M = NULL;
 
 
 
@@ -157,6 +161,7 @@ void aarch64_mmu_init(void)
  	size_t heap_base = ram_base_phys;
  	size_t heap_size = lma_text_base - heap_base;
  	
+ 	
  	memlib_init((memlib_ops_t*)&MEMLIB_IMPL_BASIC_OPS); /* init the heap */
  	
  	/* only fool with it if it is at least a couple pages */
@@ -167,7 +172,30 @@ void aarch64_mmu_init(void)
  	
  	heap_base = page_table_base_phys + KERNEL_TABLE_RESERVED_SPACE;
  	heap_size = (ram_base_phys + ram_size) - heap_base;
- 	memlib_heap_add((void*)heap_base, heap_size);	
+ 	size_t heap_end = heap_base + heap_size;
+ 	/* reseve space for the kernel heap */
+ 	size_t heap_size_set = (heap_size > KERNEL_HEAP_SIZE_BYTES)?KERNEL_HEAP_SIZE_BYTES:heap_size;
+ 	
+ 	memlib_heap_add((void*)heap_base, heap_size_set);
+ 	
+ 	heap_base += heap_size_set; /* move pointer up */
+ 	heap_size -= heap_size_set;
+
+	size_t num_4K_bytes = (heap_size/(2));
+	
+	heap_base = UPALIGN_4K(heap_base);
+	
+	size_t pp4K_end = UPALIGN_2M( (heap_base + num_4K_bytes));
+	
+	
+	PP4K = page_pool_create(PAGE_SIZE_4K, (void*)heap_base, pp4K_end-heap_base);
+	
+	heap_base += (pp4K_end-heap_base);
+	
+	PP2M = page_pool_create(PAGE_SIZE_2M, (void*)heap_base, heap_end-heap_base);
+	
+	
+	
  	
  	void *kernel_stack = aarch64_mmu_stack_create(0);
  	/* copy stack contents so we can return to the right spot */

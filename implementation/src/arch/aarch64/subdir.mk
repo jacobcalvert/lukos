@@ -1,4 +1,5 @@
 KERNEL_OBJS += $(BUILD_DIR)/src/arch/$(ARCH)/src/mmu/mmu.o \
+$(BUILD_DIR)/src/arch/$(ARCH)/src/mmu/page-pool.o \
 $(BUILD_DIR)/src/arch/$(ARCH)/src/init/arch.o \
 $(BUILD_DIR)/src/arch/$(ARCH)/src/init/pe.o \
 $(BUILD_DIR)/src/arch/$(ARCH)/src/exceptions/stubs.o \

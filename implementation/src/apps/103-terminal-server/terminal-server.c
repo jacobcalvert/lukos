@@ -108,8 +108,6 @@ void terminal_server_init(void)
 	
 	char buf[256];
 	size_t sz;
-	//syscall_schedule_thread_create(&threads[0]);
-	//syscall_schedule_thread_create(&threads[1]);
 	libc_thread_start(&threads[0]);
 	libc_thread_start(&threads[1]);
 	while(1)

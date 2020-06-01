@@ -3,7 +3,7 @@
 #include <mmu/mmu.h>
 #include <managers/vmm_arch.h>
 #include <string.h>
-
+#include <mmu/page-pool.h>
 
 #define KB									1024
 #define MB									KB*KB
@@ -18,13 +18,15 @@
 static void* vmm_arch_next_table(void* ctx);
 
 
+extern page_pool_t *PP4K;
+extern page_pool_t *PP2M;
+
+
 
 
 void *vmm_arch_context_create(address_space_t *as)
 {
 	aarch64_vmm_context_t *context = (aarch64_vmm_context_t*)memlib_malloc(sizeof(aarch64_vmm_context_t));
-	context->table_space = (void*) UPALIGN_4K(memlib_malloc(TRANSLATION_TABLE_ALLOCATION + PAGE_SIZE_4K));
-	context->table_space_len = TRANSLATION_TABLE_ALLOCATION;
 	context->translation_table = (uint64_t*)vmm_arch_next_table(context);
 	context->lock = 0;
 	return (void*)context;
@@ -105,6 +107,97 @@ skiploop_start:
 	return NULL;
 }	
 
+int vmm_arch_alloc_map(void*ctx, address_space_region_prop_t props, void *va_start, size_t len)
+{
+	/*
+	 * 1) figure out what mix of pages will be used
+	 * 2) map it
+	 */
+	aarch64_vmm_context_t *table = (aarch64_vmm_context_t*)ctx;
+	size_t attr = 0;
+	switch(props)
+	{
+		case AS_REGION_RW: attr = TBL_LOWER_ATTR_USER_MEM_RW;break;
+		case AS_REGION_RX: attr = TBL_LOWER_ATTR_USER_MEM_RX;break;
+		case AS_REGION_RO: attr = TBL_LOWER_ATTR_USER_MEM_RX;break;
+		case AS_REGION_NO_ACCESS: attr = TBL_LOWER_ATTR_KERNEL_MEM_RW;break;
+		default:attr = TBL_LOWER_ATTR_KERNEL_MEM_RW;break;
+	}
+	 /*						1G, 2M, 4K */
+	 size_t no_pages[3] = 	{0, 0, 	0};
+	 size_t va = (size_t) va_start;
+	 void *pa = NULL;
+	 size_t local_len = len;
+	 while(local_len >= PAGE_SIZE_1G)
+	 {
+	 	local_len -= PAGE_SIZE_1G;
+	 	no_pages[0]++;
+	 }
+	 
+	 while(local_len >= PAGE_SIZE_2M )
+	 {
+	 	local_len -= PAGE_SIZE_2M;
+	 	no_pages[1]++;
+	 }
+	 
+	 while( local_len >= PAGE_SIZE_4K )
+	 {
+	 	local_len -= PAGE_SIZE_4K;
+	 	no_pages[2]++;
+	 }
+	 
+	 if(local_len != 0)
+	 {
+	 	no_pages[2]++; /* left overs */
+	 }
+	 
+	 /* check alignement */
+	 if(!IS_ALIGNED_TO(va_start, PAGE_MASK_4K))
+	 {
+	 	while(1); /*TODO */
+	 } 
+	
+	 TABLE_LOCK(table); 
+	 /*
+	 for(size_t i = 0; i < no_pages[0]; i++)
+	 {
+	 	if(aarch64_mmu_map_1G(table, (void*)va,(void*)pa, attr, alloc, arg) != 0)
+	 	{
+	 		while(1); 
+	 	}
+	 	va += PAGE_SIZE_1G;
+	 	pa += PAGE_SIZE_1G;
+	 }
+	 
+	 */
+	 
+		
+	 for(size_t i = 0; i < no_pages[1]; i++)
+	 {
+	 	
+	 	
+	 	if(page_pool_alloc(PP2M, &pa) != 0 || aarch64_mmu_map_2M(table, (void*)va,(void*)pa, attr, vmm_arch_next_table, NULL) != 0)
+	 	{
+	 		while(1); /* TODO */
+	 	}
+	 	va += PAGE_SIZE_2M;
+	 }
+	 
+	 	 	 
+	 for(size_t i = 0; i < no_pages[2]; i++)
+	 {
+	 	if(page_pool_alloc(PP4K, &pa) != 0 || aarch64_mmu_map_4K(table, (void*)va,(void*)pa, attr, vmm_arch_next_table, NULL) != 0)
+	 	{
+	 		while(1); /* TODO */
+	 	}
+	 	va += PAGE_SIZE_4K;
+	 }
+	 TABLE_UNLOCK(table);
+
+	 return 0;
+
+}
+
 
 void* vmm_arch_alloc_pa_range(size_t len)
 {
@@ -157,12 +250,9 @@ void* vmm_arch_next_table(void* arg)
 {
 	void*next = NULL;
 	aarch64_vmm_context_t *ctx = (aarch64_vmm_context_t*)arg;
-	if(ctx->table_space_len >= PAGE_SIZE_4K)
+	if(page_pool_alloc(PP4K, &next) == 0)
 	{
-		next = ctx->table_space;
-		ctx->table_space = (void*)((size_t)ctx->table_space + (size_t)PAGE_SIZE_4K);
-		ctx->table_space_len -= PAGE_SIZE_4K;
-		memset(next, 0, PAGE_SIZE_4K);
+		
 	}
 	else
 	{

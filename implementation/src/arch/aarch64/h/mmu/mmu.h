@@ -1,6 +1,8 @@
 #ifndef __AARCH64_MMU__
 #define __AARCH64_MMU__
 
+#define KERNEL_HEAP_SIZE_BYTES	(32*1024*1024) /* 32MiB */
+
 #define TCR_ELx_T0SZ(n)         ((uint64_t)(n))
 #define TCR_ELx_IRGN0(n)        ((uint64_t)(n)<<8)
 #define TCR_ELx_ORGN0(n)        ((uint64_t)(n)<<10)
@@ -178,6 +180,7 @@ void aarch64_mmu_trans_table_indicies_get(void *virtaddr, size_t *l1, size_t *l2
 void *aarch64_mmu_trans_table_get_next(uint64_t entry); 
 
 void *aarch64_mmu_allocate_kernel_table(void * arg);
+
 
 
 #endif
