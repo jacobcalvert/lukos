@@ -46,17 +46,21 @@ int vmm_address_space_region_create(address_space_t *as, void *vadest, size_t le
 	return 0;
 }
 
+#define BLOCK_COPY_SIZE_BYTES	256
+
 void vmm_address_space_copy_in(address_space_t *as, void *vakernel, void *vadest, size_t len)
 {
 	size_t src = (size_t)vakernel;
 	size_t dst = (size_t)vmm_arch_v2p(as->arch_context, vadest);
-	size_t idx = 0;
-	while(idx < len)
+	
+	size_t to_copy = (len < BLOCK_COPY_SIZE_BYTES)? len: BLOCK_COPY_SIZE_BYTES;
+	while(len)
 	{
 		dst = (size_t)vmm_arch_v2p(as->arch_context, vadest);
-		memcpy((void*)dst, (void*)src, 256);
-		idx += 256;
-		vadest = (void*)((size_t)vadest + 256);
-		src += 256;
+		memcpy((void*)dst, (void*)src, to_copy);
+		vadest = (void*)((size_t)vadest + to_copy);
+		src += to_copy;
+		len-= to_copy;
+		to_copy = (len < BLOCK_COPY_SIZE_BYTES)? len: BLOCK_COPY_SIZE_BYTES;
 	}
 }

@@ -38,56 +38,13 @@ int initial_iterator(char *name, void *base, uint32_t length)
 
 
 
-/**
- * the server handles requests via a request pipe, and responds over a response pipe specified by the requestor
- */ 
- 
-typedef struct
-{
-	size_t request_type;
-	size_t response_pipe;
-	size_t request_id;
-}rs_request_t;
-
-typedef struct 
-{
-	size_t request_type;
-	
-
-}rs_response_t;
-
-#define RS_RQ_LIST_CONTENTS		0
-#define RS_RQ_GET				1
-
 void server_start(romfs_hdr_t *hdr)
 {
 	
-	rs_request_t rq;
-	size_t rq_pipe = 0;
-	syscall_ipc_pipe_create("romfs-server/requests", sizeof(rs_request_t), 64, 0);
-	syscall_ipc_pipe_id_get("romfs-server/requests", &rq_pipe);
 	romfs_iterate_files(hdr, initial_iterator);
 	while(1)
 	{
-		while(syscall_ipc_pipe_read(rq_pipe, &rq, sizeof(rq)) == SYSCALL_RESULT_PIPE_EMPTY); /* wait until we have a request */
-		
-		switch(rq.request_type)
-		{
-			case RS_RQ_LIST_CONTENTS:
-			{
-				
-			
-			break;
-			};
-			
-			case RS_RQ_GET:
-			{
-				
-			break;
-			};
-			
-			default:break;
-		}
+	
 		
 	}
 }

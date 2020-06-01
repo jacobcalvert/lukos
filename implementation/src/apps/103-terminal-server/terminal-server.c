@@ -165,7 +165,9 @@ void termsrv_listen_thread(void*arg)
 		syscall_ipc_pipe_id_get(stdx_channel_name, &out);
 		rec.in = in;
 		rec.out = out;
-		rec.err = err;
+		rec.err = 0;
+		rec.app_key = name;
+		mux_list_append(&rec);
 		
 		
 		/* reply with IDs */
@@ -225,13 +227,46 @@ int info_processes(cli_t *intf, cli_list_t *wildcards, void *user)
 	cli_printf(intf, "|-------------------------------------------------------------------------|\r\n");
 	cli_printf(intf, "| %-32s | %-10lu | %-10lu | %-10lu |\r\n", "I/O Server",stdin_pipe_id ,stdout_pipe_id , stderr_pipe_id);
 	
+	termsrv_mr_list_node_t*p = MUX_LIST;
+	while(p != NULL)
+	{
+		cli_printf(intf, "| %-32s | %-10lu | %-10lu | %-10lu |\r\n", p->record.app_key ,p->record.in ,p->record.out , p->record.err);
+		p = p->next;
+	}
+	
 	cli_printf(intf, "|-------------------------------------------------------------------------|\r\n\r\n");
 	return 0;
 }
 
 int attach_N(cli_t *intf, cli_list_t *wildcards, void *user)
 {
-
+	char *app_key;
+	if(cli_list_item_get(wildcards, &app_key))
+	{
+		termsrv_mr_list_node_t*p = MUX_LIST;
+		MUX = NULL;
+		while(p != NULL)
+		{
+			if(strcmp(p->record.app_key, app_key) == 0)
+			{
+				MUX = &p->record;
+				break;
+			}
+			p = p->next;
+		}
+		if(MUX != NULL)
+		{
+		
+			cli_printf(intf, "\r\n -- attaching to %s | use CTRL-C to detach --\r\n", app_key);
+			CLI_MODE = 0;
+			
+		}
+		else
+		{
+			cli_printf(intf, "\r\n -- did not find %s process --\r\n", app_key);
+		}
+		
+	}
 	return 0;
 }
 
@@ -286,6 +321,8 @@ void mux_list_append(termsrv_mux_record_t *rcd)
 	(*pMRLn)->record.in = rcd->in;
 	(*pMRLn)->record.out = rcd->out;
 	(*pMRLn)->record.err = rcd->err;
-	(*pMRLn)->record.app_key = rcd->app_key;
+	(*pMRLn)->record.app_key = (char*) malloc(strlen(rcd->app_key)+1);
+	memset((*pMRLn)->record.app_key, 0, strlen(rcd->app_key)+1);
+	strncpy((*pMRLn)->record.app_key, rcd->app_key, strlen(rcd->app_key));
 
 }

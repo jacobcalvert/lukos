@@ -48,7 +48,7 @@ int page_pool_alloc(page_pool_t *pool, void **ptr)
 	}
 
 	POOL_UNLOCK(pool);
-	
+	memset(*ptr, 0, pool->page_size);
 	return 0;
 
 }

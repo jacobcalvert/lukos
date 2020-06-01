@@ -55,14 +55,14 @@ static elf_entry_t myelves[] = {
 		.priority = (size_t)50,
 		.stack_size = 0x8000
 
-	}/*
+	},
 	{
 		.name = "romfs-server",
 		.addr = &__romfs_server,
-		.priority = 60,
+		.priority = 80,
 		.stack_size = 0x8000
 	
-	}*/
+	}
 };
 
 #define NO_ELVES 	sizeof(myelves)/sizeof(myelves[0])
