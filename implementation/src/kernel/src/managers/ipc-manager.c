@@ -134,12 +134,12 @@ int ipcm_pipe_write(thread_t *from, size_t id, void *vamsg, size_t len)
 	void *source_pa = (from == NULL)?vamsg:vmm_arch_v2p(from->parent->as->arch_context, vamsg); /** allows the kernel to use this mechanism too */
 	if(pipe == NULL)
 	{
-		return -1;
+		return IPC_RESULT_PIPE_NOT_FOUND;
 	}
 	
 	if(len > pipe->message_size)
 	{
-		return -2;
+		return IPC_RESULT_MESSAGE_TOO_LARGE;
 	}
 	
 	
@@ -159,7 +159,7 @@ int ipcm_pipe_write(thread_t *from, size_t id, void *vamsg, size_t len)
 			from->blocked_by = pipe;
 			THREAD_UNLOCK(from);
 			PIPE_UNLOCK(pipe);
-			return -4;
+			return IPC_RESULT_PIPE_FULL;
 		}
 	}
 	
@@ -180,7 +180,7 @@ int ipcm_pipe_read(thread_t *to, size_t id, void *vamsg, size_t *valen)
 	size_t *dest_len_pa = (to == NULL)?valen:vmm_arch_v2p(to->parent->as->arch_context, valen);
 	if(pipe == NULL)
 	{
-		return -1;
+		return IPC_RESULT_PIPE_NOT_FOUND;
 	}
 	
 	PIPE_LOCK(pipe);
@@ -192,7 +192,7 @@ int ipcm_pipe_read(thread_t *to, size_t id, void *vamsg, size_t *valen)
 		to->blocked_by = pipe;
 		THREAD_UNLOCK(to);
 		PIPE_UNLOCK(pipe);
-		return -4;
+		return IPC_RESULT_PIPE_EMPTY;
 	}
 	
 	

@@ -105,10 +105,17 @@ void *vmm_arch_context_create(address_space_t *as);
  * that will accomodate the given size
  */
 void *vmm_arch_get_free_va_range(void *context, size_t len);
+
 /* 
- *
+ * allocate and map some RAM starting with the given VA and going for len bytes
+ * @param ctx		the arch context
+ * @param props		the regions properties
+ * @param va		the starting VA
+ * @param len		the number of bytes to alloc and map
+ * @return non-zero if problem
  */
-int vmm_arch_alloc_map(void*ctx, address_space_region_prop_t props, void *va_start, size_t len);
+int vmm_arch_alloc_map(void*ctx, address_space_region_prop_t props, void *va, size_t len);
+
 /**
  * map a specific VA to a specific PA of len
  * @return non-zero if problem

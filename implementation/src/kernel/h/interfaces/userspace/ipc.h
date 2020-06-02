@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <interfaces/userspace/macros.h>
 
+#define SYSCALL_IPC_PIPE_FLAG_OVERWRITE_MODE		(1<<0)		/**< use this pipe in FIFO mode where the oldest info is discarded instead of blocking on write */
+
 /**
  * create a pipe
  * @param name		the string name of the pipe for named pipes

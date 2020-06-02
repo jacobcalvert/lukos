@@ -24,6 +24,10 @@
 
 #define IPC_PIPE_FLAGS_PURGE_ON_FULL	(1<<16)			/**< purge the oldest message when set, otherwise return error codes to client */
 
+#define IPC_RESULT_PIPE_NOT_FOUND		(-1)
+#define IPC_RESULT_MESSAGE_TOO_LARGE	(-2)
+#define IPC_RESULT_PIPE_EMPTY			(-3)
+#define IPC_RESULT_PIPE_FULL			(-4)
 typedef struct 
 {
 	void *message;

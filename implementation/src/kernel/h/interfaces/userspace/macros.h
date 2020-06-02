@@ -33,7 +33,8 @@
 /* specific results */
 #define SYSCALL_RESULT_PIPE_EMPTY		-1000
 #define SYSCALL_RESULT_PIPE_FULL		-1001
-
+/* helper macro */
+#define SYSCALL_RESULT_PIPE_OP_BLOCKED(n)		(((n) == SYSCALL_RESULT_PIPE_FULL) || ((n) == SYSCALL_RESULT_PIPE_EMPTY))
 
 
 

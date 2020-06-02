@@ -71,9 +71,7 @@ void aarch64_svc_handle(size_t cpuno, void *sp)
 		{
 			((uint64_t*)frame)[X0_FRAME_OFFSET] = SYSCALL_RESULT_OK;
 			size_t ticks = ((size_t*)frame)[X1_FRAME_OFFSET];
-			THREAD_LOCK(thread);
-			thread->sleep_ticks = PLATFORM_DATA.max_cpus *(ticks+1);
-			THREAD_UNLOCK(thread);
+			((uint64_t*)frame)[X0_FRAME_OFFSET] = (uint64_t) syscall_schedule_sleep_ticks_kernel_handler(thread, ticks);
 			aarch64_scheduling_interrupt(cpuno, 0);
 			load_ttbr0 = 0;
 			
@@ -82,16 +80,7 @@ void aarch64_svc_handle(size_t cpuno, void *sp)
 		case SYSCALL_SCHEDULING_THREAD_CREATE:
 		{
 			size_t struct_va_ptr = ((size_t*)frame)[X1_FRAME_OFFSET];
-			size_t ptrsz = sizeof(void*);
-			size_t sizesz = sizeof(size_t);
-			size_t struct_va = *(size_t*)vmm_arch_v2p(as->arch_context, (void*)struct_va_ptr);
-			char *name = (char *)vmm_arch_v2p(as->arch_context, (void*)struct_va);
-			void **entry = (void*)vmm_arch_v2p(as->arch_context, (void*)(struct_va_ptr + ptrsz));
-			void **arg = (void**)vmm_arch_v2p(as->arch_context, (void*)(struct_va_ptr + 2*ptrsz));
-			size_t *stack_size = (size_t*)vmm_arch_v2p(as->arch_context, (void*)(struct_va_ptr + 3*ptrsz));
-			size_t *pri = (size_t*)vmm_arch_v2p(as->arch_context, (void*)(struct_va_ptr + 3*ptrsz + sizesz));
-			
-			((uint64_t*)frame)[X0_FRAME_OFFSET] = pm_thread_create(name, thread->parent, *entry, *arg, *stack_size, *pri)?SYSCALL_RESULT_OK:SYSCALL_RESULT_ERROR; 
+			((uint64_t*)frame)[X0_FRAME_OFFSET] =  (uint64_t) syscall_schedule_thread_create_kernel_handler(thread, (thread_info_t*)struct_va_ptr);
 			break;	
 		}
 		case SYSCALL_SCHEDULING_THREAD_ID_GET:
@@ -105,7 +94,7 @@ void aarch64_svc_handle(size_t cpuno, void *sp)
 		{
 			size_t irqno = ((size_t*)frame)[X1_FRAME_OFFSET];
 			void *entry = (void*)((size_t*)frame)[X2_FRAME_OFFSET];
-			((uint64_t*)frame)[X0_FRAME_OFFSET]  = (intm_interrupt_attach(thread->parent, cpuno, irqno, 0, entry) ==  0)?SYSCALL_RESULT_OK:SYSCALL_RESULT_BAD_PARAM;
+			((uint64_t*)frame)[X0_FRAME_OFFSET]  = syscall_interrupt_attach_kernel_handler(thread, irqno, entry);
 			break;
 		};
 		case SYSCALL_INTERRUPT_COMPLETE:
@@ -162,9 +151,7 @@ void aarch64_svc_handle(size_t cpuno, void *sp)
 			size_t msg_size = ((size_t*)frame)[X2_FRAME_OFFSET];
 			size_t max_msgs = ((size_t*)frame)[X3_FRAME_OFFSET];
 			size_t flags = ((size_t*)frame)[X4_FRAME_OFFSET];
-			
-			((uint64_t*)frame)[X0_FRAME_OFFSET]  = ipcm_pipe_create(name, msg_size, max_msgs, flags)?SYSCALL_RESULT_OK:SYSCALL_RESULT_ERROR;
-		
+			((uint64_t*)frame)[X0_FRAME_OFFSET] = syscall_ipc_pipe_create_kernel_handler(thread, name, msg_size, max_msgs, flags);
 			break;
 		};
 		
@@ -202,12 +189,12 @@ void aarch64_svc_handle(size_t cpuno, void *sp)
 			size_t id = ((size_t*)frame)[X1_FRAME_OFFSET];
 			void *vamsg = (void*)((size_t*)frame)[X2_FRAME_OFFSET];
 			size_t len = ((size_t*)frame)[X3_FRAME_OFFSET];
-			int result = ipcm_pipe_write(thread, id, vamsg, len);
-			((uint64_t*)frame)[X0_FRAME_OFFSET] = SYSCALL_RESULT_OK;
-			if(result == -4)
+			int result = syscall_ipc_pipe_write_kernel_handler(thread, id, vamsg, len);
+			((uint64_t*)frame)[X0_FRAME_OFFSET] = (uint64_t) result;
+			if(SYSCALL_RESULT_PIPE_OP_BLOCKED(result))
 			{
 				/* causes a context switch */
-				((uint64_t*)frame)[X0_FRAME_OFFSET] = SYSCALL_RESULT_PIPE_FULL;
+
 				aarch64_scheduling_interrupt(cpuno, 0);
 				load_ttbr0 = 0;
 			}
@@ -219,12 +206,11 @@ void aarch64_svc_handle(size_t cpuno, void *sp)
 			size_t id = ((size_t*)frame)[X1_FRAME_OFFSET];
 			void *vamsg = (void*)((size_t*)frame)[X2_FRAME_OFFSET];
 			void *valen = (void*)((size_t*)frame)[X3_FRAME_OFFSET];
-			int result = ipcm_pipe_read(thread, id, vamsg, valen);
-			((uint64_t*)frame)[X0_FRAME_OFFSET] = SYSCALL_RESULT_OK;
-			if(result == -4)
+			int result = syscall_ipc_pipe_read_kernel_handler(thread, id, vamsg, valen);
+			((uint64_t*)frame)[X0_FRAME_OFFSET] = (uint64_t) result;
+			if(SYSCALL_RESULT_PIPE_OP_BLOCKED(result))
 			{
 				/* causes a context switch */
-				((uint64_t*)frame)[X0_FRAME_OFFSET] = SYSCALL_RESULT_PIPE_EMPTY;
 				aarch64_scheduling_interrupt(cpuno, 0);
 				load_ttbr0 = 0;
 			}
