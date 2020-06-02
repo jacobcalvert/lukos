@@ -142,6 +142,7 @@ int cmdlog_clear(cli_t *intf, cli_list_t *wildcards, void *user)
 int fs_list_iter(char *name, void *base, uint32_t length, void *arg)
 {
 	cli_printf((cli_t*)arg, "\r\n%-32s - %.02fkB", name, (float)length/1024.0);
+	return 1;
 }
 int fs_list(cli_t *intf, cli_list_t *wildcards, void *user)
 {

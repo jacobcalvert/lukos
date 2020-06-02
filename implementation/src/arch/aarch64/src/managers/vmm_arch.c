@@ -64,7 +64,6 @@ void *vmm_arch_get_free_va_range(void *ctx, size_t len)
 	
 	size_t address = 0;
 	size_t potential = 0;
-	size_t free_pages = 0;
 	size_t top_page_idx = 2;
 	while(no_pages[top_page_idx] == 0) top_page_idx--;
 	TABLE_LOCK(((aarch64_vmm_context_t*)ctx));
@@ -249,7 +248,6 @@ int vmm_arch_align_check(void *va, size_t len)
 void* vmm_arch_next_table(void* arg)
 {
 	void*next = NULL;
-	aarch64_vmm_context_t *ctx = (aarch64_vmm_context_t*)arg;
 	if(page_pool_alloc(PP4K, &next) == 0)
 	{
 		

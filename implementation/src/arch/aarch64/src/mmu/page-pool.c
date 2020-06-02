@@ -1,7 +1,7 @@
 #include <mmu/page-pool.h>
 #include <libraries/mem/memlib.h>
 #include <interfaces/os/atomic.h>
-
+#include <string.h>
 #define POOL_LOCK(p)		(atomic32_spinlock_acquire(&p->lock))
 #define POOL_UNLOCK(p)		(atomic32_spinlock_release(&p->lock))
 
