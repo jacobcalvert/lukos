@@ -1,4 +1,5 @@
 # Learning uKernel Operating System (LuKOS)
+![LuKOS, the learning microkernel OS](./design/img/logo.png)
 This repo contains the all design throughts and implementation of what I'm calling LuKOS. This project is purely for me to explore microkernel implementation on modern architecutures. You'll find the design documents in the design directory, and the implmenetation source in the implementation directory. 
 
 ## Goals
