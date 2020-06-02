@@ -30,7 +30,7 @@ romfs_hdr_t *romfs_load(void *base)
 }
 
 
-void romfs_iterate_files(romfs_hdr_t *hdr, romfs_file_iter_t iter)
+void romfs_iterate_files(romfs_hdr_t *hdr, romfs_file_iter_t iter, void *arg)
 {
 	char *end_hdr = (char*)(size_t)hdr + 16;
 	while(*end_hdr != '\0') end_hdr++;
@@ -50,7 +50,7 @@ void romfs_iterate_files(romfs_hdr_t *hdr, romfs_file_iter_t iter)
 		void *base = (void*)UPALIGN_16B(end_name);
 		if(size != 0)
 		{
-			iter(name, base, size);
+			iter(name, base, size, arg);
 		}
 		if(next_off == 0)
 		{

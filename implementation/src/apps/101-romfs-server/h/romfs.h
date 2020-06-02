@@ -24,7 +24,7 @@ typedef struct __attribute__((packed))
 }romfs_file_hdr_t;
 
 
-typedef int (*romfs_file_iter_t)(char *name, void *base, uint32_t length);
+typedef int (*romfs_file_iter_t)(char *name, void *base, uint32_t length, void *arg);
 
 
 /**
@@ -35,7 +35,7 @@ romfs_hdr_t *romfs_load(void *base);
 /* 
  * iterate the files
  */
-void romfs_iterate_files(romfs_hdr_t *hdr, romfs_file_iter_t iter);
+void romfs_iterate_files(romfs_hdr_t *hdr, romfs_file_iter_t iter, void *arg);
 
 
 

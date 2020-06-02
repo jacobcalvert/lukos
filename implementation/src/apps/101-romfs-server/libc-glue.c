@@ -39,7 +39,7 @@ static void thread_info_list_append(libc_thread_info_node_t* thinfo);
 
 static void libc_thread_entry(void *arg);
 								/* in, out, err */
-static size_t file_handles[3] = {0, 0, 0};
+size_t file_handles[3] = {0, 0, 0};
 
 void libc_init(void)
 {
@@ -245,7 +245,7 @@ int _wait(int *status)
 }
 int _write(int file, char *ptr, int len)
 {
-
+	return 0;
 	if(file < 3)
 	{
 		if(file_handles[file] != 0)

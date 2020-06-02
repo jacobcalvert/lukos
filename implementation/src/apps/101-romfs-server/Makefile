@@ -4,7 +4,7 @@ APP_NAME = 101-romfs-server
 BUILD_DIR=./build
 
 # app objects
-APP_OBJS= $(BUILD_DIR)/src/apps/$(APP_NAME)/app.o $(BUILD_DIR)/src/apps/$(APP_NAME)/libc-glue.o $(BUILD_DIR)/src/apps/$(APP_NAME)/romfs.o $(BUILD_DIR)/src/apps/$(APP_NAME)/romfs-bin.o $(NEWLIB_BUILD_DIR)/$(CROSS_COMPILE)/newlib/libc.a
+APP_OBJS= $(BUILD_DIR)/src/apps/$(APP_NAME)/app.o $(BUILD_DIR)/src/apps/$(APP_NAME)/libc-glue.o $(BUILD_DIR)/src/apps/$(APP_NAME)/cli.o $(BUILD_DIR)/src/apps/$(APP_NAME)/log.o $(BUILD_DIR)/src/apps/$(APP_NAME)/romfs.o $(BUILD_DIR)/src/apps/$(APP_NAME)/romfs-bin.o $(NEWLIB_BUILD_DIR)/$(CROSS_COMPILE)/newlib/libc.a
 
 # default includes 
 KERNEL_INCLUDES = -I ./src/arch/$(ARCH)/h 
