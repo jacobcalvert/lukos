@@ -1,4 +1,4 @@
-<html><style>
+<html><head><style>
 @media print {
   *,
   *:before,
@@ -225,41 +225,25 @@ a:active {
   color: #2980b9;
 }
 </style>
-<h1> Table of Contents </h1>
-<ul>
-  <li><a href="#lukos-userspace-model">LuKOS Userspace Model</a>
-  <ul>
-    <li><a href="#userspace-functions">Userspace Functions</a>
-    <ul>
-      <li><a href="#data-path">Data Path</a></li>
-      <li><a href="#function-groups">Function Groups</a>
-      <ul>
-        <li><a href="#scheduling-calls">Scheduling Calls</a></li>
-        <li><a href="#memory-calls">Memory Calls</a></li>
-        <li><a href="#device-calls">Device Calls</a></li>
-        <li><a href="#ipc-calls">IPC Calls</a></li>
-      </ul></li>
-    </ul></li>
-  </ul></li>
-</ul>
-
-<h1 id="lukos-userspace-model">LuKOS Userspace Model</h1>
+<link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/styles/default.min.css'>
+<script src='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/highlight.min.js'></script>
+<h1>LuKOS Userspace Model</h1>
 
 <p>The LuKOS userspace runs entirely in the loweset privilege level on the architecture (EL0 on ARMv8 for example), and uses a single Address Space (see <a href="110-virtual-memory.md.html">the Virtual Memory Management subsystem</a> for more info on this. It uses context switches via syscalls into Kernel mode to make requests for things like resources (RAM, processing time), access (shared memory) etc. </p>
 
-<h2 id="userspace-functions">Userspace Functions</h2>
+<h2>Userspace Functions</h2>
 
 <p>The userspace functions are broken down into groups based on their functional area.</p>
 
-<h3 id="data-path">Data Path</h3>
+<h3>Data Path</h3>
 
 <p>When a userspace application wants the kernel to something on its behalf, the userspace application will make a system call. This system call will record the arguments to the call and switch contexts to kernel mode. The architecture-specific handler will unpack these arguments and pass them to a kernel generic handler. This process in unravelled to return data to the calling application. </p>
 
-<h3 id="function-groups">Function Groups</h3>
+<h3>Function Groups</h3>
 
-<h4 id="scheduling-calls">Scheduling Calls</h4>
+<h4>Scheduling Calls</h4>
 
-<pre><code>    /**
+<pre><code class="c">    /**
      * yield control back to the scheduler, indicating I'm done for now
      */
     void syscall_schedule_yield(void);
@@ -274,9 +258,9 @@ a:active {
 
 </code></pre>
 
-<h4 id="memory-calls">Memory Calls</h4>
+<h4>Memory Calls</h4>
 
-<pre><code>    /**
+<pre><code class="c">    /**
      * allocate some memory for the user process
      * @param sz        the length requested
      * @param flags     flags indicated properties about the memory region
@@ -286,9 +270,9 @@ a:active {
     int syscall_memory_alloc(size_t sz, size_t flags, void **ptr);
 </code></pre>
 
-<h4 id="device-calls">Device Calls</h4>
+<h4>Device Calls</h4>
 
-<pre><code>
+<pre><code class="c">
     /**
      * allocate a memory-mapped device 
      * @param pa        the physical address of this device
@@ -300,9 +284,9 @@ a:active {
 
 </code></pre>
 
-<h4 id="ipc-calls">IPC Calls</h4>
+<h4>IPC Calls</h4>
 
-<pre><code>    /**
+<pre><code class="c">    /**
      *
      */
 

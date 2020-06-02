@@ -22,7 +22,7 @@ The Virtual Address upper bound for Address Spaces in this archtecture is 0xFFFF
 
 ## Kernel Interface
 These are the calls defined for use by the kernel. 
-```
+```c
 
 /**
  * initialize the virtual memory manager
@@ -57,7 +57,7 @@ void vmm_address_space_copy_in(address_space_t *as, void *vakernel, void *vadest
 
 ## Architecture Interface
 These are the calls to be implemented by the architecture specific code. These provide the glue between the kernel which is architecture agnostic and the details of the implementation.
-```
+```c
 
 /**
  * create the architecture specific context (transtables, etc) and return a pointer in kernel VA space to it

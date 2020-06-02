@@ -1,5 +1,5 @@
 # LuKOS Userspace Model
-The LuKOS userspace runs entirely in the loweset privilege level on the architecture (EL0 on ARMv8 for example), and uses a single Address Space (see [the Virtual Memory Management subsystem](110-virtual-memory.md.html) for more info on this. It uses context switches via syscalls into Kernel mode to make requests for things like resources (RAM, processing time), access (shared memory) etc. 
+The LuKOS userspace runs entirely in the loweset privilege level on the architecture (EL0 on ARMv8 for example), and uses a single Address Space (see [the Virtual Memory Management subsystem](110-virtual-memory.md) for more info on this. It uses context switches via syscalls into Kernel mode to make requests for things like resources (RAM, processing time), access (shared memory) etc. 
 
 ## Userspace Functions
 The userspace functions are broken down into groups based on their functional area.
@@ -9,7 +9,7 @@ When a userspace application wants the kernel to something on its behalf, the us
 
 ### Function Groups
 #### Scheduling Calls
-```
+```c
 	/**
 	 * yield control back to the scheduler, indicating I'm done for now
 	 */
@@ -27,7 +27,7 @@ When a userspace application wants the kernel to something on its behalf, the us
 
 #### Memory Calls
 
-```
+```c
 	/**
 	 * allocate some memory for the user process
 	 * @param sz		the length requested
@@ -39,7 +39,7 @@ When a userspace application wants the kernel to something on its behalf, the us
 ```
 
 #### Device Calls
-```
+```c
 
 	/**
 	 * allocate a memory-mapped device 
@@ -53,7 +53,7 @@ When a userspace application wants the kernel to something on its behalf, the us
 ```
 
 #### IPC Calls
-```
+```c
 	/**
 	 *
 	 */

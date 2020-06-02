@@ -19,7 +19,7 @@ This is a straightforward way to use the pipe. Use the pipe to move data between
 
 ## Kernel Interface
 These are the calls defined for use by the kernel. 
-```
+```c
 
 /**
  * init the IPC manager

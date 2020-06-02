@@ -1,4 +1,4 @@
-<html><style>
+<html><head><style>
 @media print {
   *,
   *:before,
@@ -225,53 +225,37 @@ a:active {
   color: #2980b9;
 }
 </style>
-<h1> Table of Contents </h1>
-<ul>
-  <li><a href="#lukos-kernel-functions-process-management">LuKOS Kernel Functions - Process Management</a>
-  <ul>
-    <li><a href="#concepts">Concepts</a>
-    <ul>
-      <li><a href="#processes">Processes</a></li>
-      <li><a href="#process-based-scheduling">Process-based Scheduling</a></li>
-      <li><a href="#threads">Threads</a></li>
-    </ul></li>
-    <li><a href="#architecture-specific-concepts">Architecture Specific Concepts</a>
-    <ul>
-      <li><a href="#aarch64-armv8-a">AARCH64 (ARMv8-A)</a></li>
-    </ul></li>
-    <li><a href="#kernel-interface">Kernel Interface</a></li>
-  </ul></li>
-</ul>
-
-<h1 id="lukos-kernel-functions-process-management">LuKOS Kernel Functions - Process Management</h1>
+<link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/styles/default.min.css'>
+<script src='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/highlight.min.js'></script>
+<h1>LuKOS Kernel Functions - Process Management</h1>
 
 <p>The process management model defines what a process is, and how it interacts with the kernel. This process manager is implemented as a Process Manager (PM).</p>
 
-<h2 id="concepts">Concepts</h2>
+<h2>Concepts</h2>
 
-<h3 id="processes">Processes</h3>
+<h3>Processes</h3>
 
 <p>A process is simply a single thread or collection of threads sharing an Address Space. Processes are created with a particular priority which the kernel schedules in a priority-preemptive fashion. </p>
 
-<h3 id="process-based-scheduling">Process-based Scheduling</h3>
+<h3>Process-based Scheduling</h3>
 
 <p>The kernel will check if a process is schedulable and if so turns scheduling control over to that process. The process will then select from its threads using whatever scheduling algorithm is applicable to that particular process. </p>
 
-<h3 id="threads">Threads</h3>
+<h3>Threads</h3>
 
 <p>A thread is a single "task" running in a process's address space. This thread has properties like priority (which may be unused if the round-robin scheduler is used by this process), core affinity, a name, etc. </p>
 
-<h2 id="architecture-specific-concepts">Architecture Specific Concepts</h2>
+<h2>Architecture Specific Concepts</h2>
 
-<h3 id="aarch64-armv8-a">AARCH64 (ARMv8-A)</h3>
+<h3>AARCH64 (ARMv8-A)</h3>
 
 <p>There are no special requirements or specificities on this architecture.</p>
 
-<h2 id="kernel-interface">Kernel Interface</h2>
+<h2>Kernel Interface</h2>
 
 <p>These are the calls defined for use by the kernel. </p>
 
-<pre><code>
+<pre><code class="c">
 /**
  * initialize the Process Manager
  * @param maxcpus       the maximum number of CPUs expected in this systems
@@ -333,16 +317,14 @@ void pm_thread_affinity_set(thread_t *thr, size_t aff);
 
 </code></pre>
 
-<pre><code>
-## Architecture Interface
-These are the calls to be implemented by the architecture specific code. These provide the glue between the kernel which is architecture agnostic and the details of the implementation.
+<h2>Architecture Interface</h2>
 
-</code></pre>
+<p>These are the calls to be implemented by the architecture specific code. These provide the glue between the kernel which is architecture agnostic and the details of the implementation.</p>
 
-<p>/**
+<pre><code class="c">/**
  * architecture specific call to populate the task stack with the arguments and set the entry point
  */
-void pm<em>arch</em>thread<em>stack</em>populate(process<em>t *prc, thread</em>t *thr);</p>
+void pm_arch_thread_stack_populate(process_t *prc, thread_t *thr);
 
-<p>```</p>
+</code></pre>
 </html>

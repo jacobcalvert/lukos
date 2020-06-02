@@ -1,4 +1,4 @@
-<html><style>
+<html><head><style>
 @media print {
   *,
   *:before,
@@ -225,61 +225,43 @@ a:active {
   color: #2980b9;
 }
 </style>
-<h1> Table of Contents </h1>
-<ul>
-  <li><a href="#lukos-kernel-functions-virtual-memory">LuKOS Kernel Functions - Virtual Memory</a>
-  <ul>
-    <li><a href="#concepts">Concepts</a>
-    <ul>
-      <li><a href="#virtual-address">Virtual Address</a></li>
-      <li><a href="#physical-address">Physical Address</a></li>
-      <li><a href="#address-spaces">Address Spaces</a></li>
-      <li><a href="#regions">Regions</a></li>
-    </ul></li>
-    <li><a href="#architecture-specific-concepts">Architecture Specific Concepts</a>
-    <ul>
-      <li><a href="#aarch64-armv8-a">AARCH64 (ARMv8-A)</a></li>
-    </ul></li>
-    <li><a href="#kernel-interface">Kernel Interface</a></li>
-    <li><a href="#architecture-interface">Architecture Interface</a></li>
-  </ul></li>
-</ul>
-
-<h1 id="lukos-kernel-functions-virtual-memory">LuKOS Kernel Functions - Virtual Memory</h1>
+<link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/styles/default.min.css'>
+<script src='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/highlight.min.js'></script>
+<h1>LuKOS Kernel Functions - Virtual Memory</h1>
 
 <p>The virtual memory management capability provided by the kernel is implemented as a Virtual Memory Manager (VMM). The VMM will manage the MMU translation entries for all processes and will be able to translate virtual-to-physical (V2P) addresses for the kernel and other address spaces.</p>
 
-<h2 id="concepts">Concepts</h2>
+<h2>Concepts</h2>
 
 <p>There are several key concepts involved with managing the virtual memory of the microkernel. They are described below.</p>
 
-<h3 id="virtual-address">Virtual Address</h3>
+<h3>Virtual Address</h3>
 
 <p>A Virtual Address (VA) is one that represents a resource in the system and may or may not be "backed" by anything.</p>
 
-<h3 id="physical-address">Physical Address</h3>
+<h3>Physical Address</h3>
 
 <p>A Physical Address (PA) is an address that maps to a physical resource in the system, such as RAM or peripherals.</p>
 
-<h3 id="address-spaces">Address Spaces</h3>
+<h3>Address Spaces</h3>
 
 <p>Address Spaces, or a singular Address Space (AS), represents a range of Virtual Addresses starting at zero (0) and going to an architecture-dependent upper-bound. Each Address Space has a unique ID associated with it, and these Adress Spaces are for use with User Processes only; i.e., the kernel does not have a numbered AS. </p>
 
-<h3 id="regions">Regions</h3>
+<h3>Regions</h3>
 
 <p>Each Address Space has one or more Regions. A Region is a mapping of a subrange of the VAs in the Address Space to a subrange of the PAs in the system of identical size. These Regions are lined up on architecture-dependent boundaries. Each Region has a set of properties defining the properties the user of the AS will have in this Region. For example, the .text area would be set to RX (read-execute), while the .data section would be RW (read-write). </p>
 
-<h2 id="architecture-specific-concepts">Architecture Specific Concepts</h2>
+<h2>Architecture Specific Concepts</h2>
 
-<h3 id="aarch64-armv8-a">AARCH64 (ARMv8-A)</h3>
+<h3>AARCH64 (ARMv8-A)</h3>
 
 <p>The Virtual Address upper bound for Address Spaces in this archtecture is 0xFFFFFF8000000000; therefore ASes in this architure have VAs in the range [0x0000000000000000, 0xFFFFFF8000000000). Note the non-inclusiveness of the upperbound. The Address Spaces in this architecture have Regions which are assigned on 4K, 2M, or 1G boundaries, depending on the requested Region size. </p>
 
-<h2 id="kernel-interface">Kernel Interface</h2>
+<h2>Kernel Interface</h2>
 
 <p>These are the calls defined for use by the kernel. </p>
 
-<pre><code>
+<pre><code class="c">
 /**
  * initialize the virtual memory manager
  */
@@ -311,11 +293,11 @@ void vmm_address_space_copy_in(address_space_t *as, void *vakernel, void *vadest
 
 </code></pre>
 
-<h2 id="architecture-interface">Architecture Interface</h2>
+<h2>Architecture Interface</h2>
 
 <p>These are the calls to be implemented by the architecture specific code. These provide the glue between the kernel which is architecture agnostic and the details of the implementation.</p>
 
-<pre><code>
+<pre><code class="c">
 /**
  * create the architecture specific context (transtables, etc) and return a pointer in kernel VA space to it
  */

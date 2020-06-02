@@ -16,7 +16,7 @@ There are no special requirements or specificities on this architecture.
 ## Kernel Interface
 These are the calls defined for use by the kernel. 
 
-```
+```c
 
 /**
  * initialize the Process Manager
@@ -79,12 +79,11 @@ void pm_thread_affinity_set(thread_t *thr, size_t aff);
 
 ```
 
-```
 
 ## Architecture Interface
 These are the calls to be implemented by the architecture specific code. These provide the glue between the kernel which is architecture agnostic and the details of the implementation.
 
-```
+```c
 /**
  * architecture specific call to populate the task stack with the arguments and set the entry point
  */

@@ -1,4 +1,4 @@
-<html><style>
+<html><head><style>
 @media print {
   *,
   *:before,
@@ -225,40 +225,7 @@ a:active {
   color: #2980b9;
 }
 </style>
-<h1> Table of Contents </h1>
-<ul>
-  <li><a href="#lukos-startup-model">LuKOS Startup Model</a>
-  <ul>
-    <li><a href="#at-power-on">At Power-On</a></li>
-    <li><a href="#at-kernel-start">At Kernel Start</a>
-    <ul>
-      <li><a href="#kernel-entry-flow">Kernel Entry Flow</a></li>
-      <li><a href="#kernel-entry-signature">Kernel Entry Signature</a></li>
-    </ul></li>
-  </ul></li>
-</ul>
-
-<h1 id="lukos-startup-model">LuKOS Startup Model</h1>
-
-<p>The startup model is intended to generalize what is needed from a board and processor support standpoint to make the kernel work.</p>
-
-<h2 id="at-power-on">At Power-On</h2>
-
-<p>At power-on, the board and processor specific code needs to put the hardware (especially the interrupt controller and MMU) in a quiscient state so there will be no spurious interrupts and such when the kernel launches. The boot core will setup an initial translation table so the kernel can run in virtual space.</p>
-
-<p>This code will then pass control to kernel main entry.  </p>
-
-<h2 id="at-kernel-start">At Kernel Start</h2>
-
-<p>The bootup code will pass control to the kernel main entry by calling kernel_entry.</p>
-
-<h3 id="kernel-entry-flow">Kernel Entry Flow</h3>
-
-<p>The kernel_entry function will call architecture specific startup code, install handlers for exceptions/interrupts, setup interrupt controllers, MMUs and the finally run the root process with a thread for each core.</p>
-
-<h3 id="kernel-entry-signature">Kernel Entry Signature</h3>
-
-<pre><code>void kernel_entry(size_t corenum);
-
-</code></pre>
+<link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/styles/default.min.css'>
+<script src='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/highlight.min.js'></script>
+<p></p>
 </html>

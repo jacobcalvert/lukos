@@ -1,4 +1,4 @@
-<html><style>
+<html><head><style>
 @media print {
   *,
   *:before,
@@ -225,56 +225,39 @@ a:active {
   color: #2980b9;
 }
 </style>
-<h1> Table of Contents </h1>
-<ul>
-  <li><a href="#lukos-kernel-functions-inter-process-communication-model">LuKOS Kernel Functions - Inter-process Communication Model</a>
-  <ul>
-    <li><a href="#concepts">Concepts</a>
-    <ul>
-      <li><a href="#pipes">Pipes</a></li>
-      <li><a href="#pipe-usage">Pipe Usage</a>
-      <ul>
-        <li><a href="#blackboard">Blackboard</a></li>
-        <li><a href="#token-based-semaphore">Token-based Semaphore</a></li>
-        <li><a href="#message-passing">Message Passing</a></li>
-      </ul></li>
-    </ul></li>
-    <li><a href="#kernel-interface">Kernel Interface</a></li>
-    <li><a href="#architecture-interface">Architecture Interface</a></li>
-  </ul></li>
-</ul>
-
-<h1 id="lukos-kernel-functions-inter-process-communication-model">LuKOS Kernel Functions - Inter-process Communication Model</h1>
+<link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/styles/default.min.css'>
+<script src='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/highlight.min.js'></script>
+<h1>LuKOS Kernel Functions - Inter-process Communication Model</h1>
 
 <p>The IPC Model defines several methods of IPC for message passing, synchronization, etc. This IPC is managed in the kernel by an Inter-Process Communication Manager (IPCM).</p>
 
-<h2 id="concepts">Concepts</h2>
+<h2>Concepts</h2>
 
-<h3 id="pipes">Pipes</h3>
+<h3>Pipes</h3>
 
 <p>Pipes system-wide data busses which can be read from and written to by referencing its ID. The messages which go into a pipe or are read from a pipe have the message boundaries preserved (i.e., each message carries its data and length). Pipes can be thought of as a queue of messages of size S bytes, where the queue length is L messages. When a message is written to the pipe, it is done so atomically. Readers of the pipe will be blocked on a read call until the pipe has some data. Writers to the pipe will either block on a full pipe, or the oldest message discarded and the new one written, depending on configuration. When a thread is blocked on a read or write, that thread will be notified and woken up when it has no more blocking conditions.  </p>
 
-<h3 id="pipe-usage">Pipe Usage</h3>
+<h3>Pipe Usage</h3>
 
 <p>Pipes can be used in a multitude of ways, but here are a few ways they are useful.</p>
 
-<h4 id="blackboard">Blackboard</h4>
+<h4>Blackboard</h4>
 
 <p>To keep the latest data available all the time, create a pipe with only one message deep, and configure to discard last on full. When the producer writes to the pipe, the reader will always see the freshest data. </p>
 
-<h4 id="token-based-semaphore">Token-based Semaphore</h4>
+<h4>Token-based Semaphore</h4>
 
 <p>To use a pipe as a Process/Thread synchronization mechanism, create a pipe of depth <strong>N</strong>, where N is the semaphore resource count. Then either prefill, or leave empty the pipe. When a consumer wants to access a limited resource, they read an "access token" from the pipe (which blocks until the pipe has something in it) and if they can "acquire" this token, this is effectively acquiring the resource. When done, they can write a token back to the pipe, indicating a release.</p>
 
-<h4 id="message-passing">Message Passing</h4>
+<h4>Message Passing</h4>
 
 <p>This is a straightforward way to use the pipe. Use the pipe to move data between processes (there are more efficient ways to move data within the same process) by writing to and reading from a shared pipe.</p>
 
-<h2 id="kernel-interface">Kernel Interface</h2>
+<h2>Kernel Interface</h2>
 
 <p>These are the calls defined for use by the kernel. </p>
 
-<pre><code>
+<pre><code class="c">
 /**
  * init the IPC manager
  */
@@ -327,7 +310,7 @@ int ipcm_pipe_read(thread_t *to, size_t id, void *vamsg, size_t *valen);
 
 </code></pre>
 
-<h2 id="architecture-interface">Architecture Interface</h2>
+<h2>Architecture Interface</h2>
 
 <p>There are no architecture calls for this manager component.</p>
 </html>

@@ -1,4 +1,4 @@
-<html><style>
+<html><head><style>
 @media print {
   *,
   *:before,
@@ -225,39 +225,27 @@ a:active {
   color: #2980b9;
 }
 </style>
-<h1> Table of Contents </h1>
-<ul>
-  <li><a href="#lukos-kernel-functions">LuKOS Kernel Functions</a>
-  <ul>
-    <li><a href="#primary-functions">Primary Functions</a>
-    <ul>
-      <li><a href="#process-management-pm">Process Management (PM)</a></li>
-      <li><a href="#virtual-memory-management-vmm">Virtual Memory Management (VMM)</a></li>
-      <li><a href="#inter-process-communication-managementipcm">Inter-Process Communication Management(IPCM)</a></li>
-      <li><a href="#interrupt-management-intm">Interrupt Management (INTM)</a></li>
-    </ul></li>
-  </ul></li>
-</ul>
-
-<h1 id="lukos-kernel-functions">LuKOS Kernel Functions</h1>
+<link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/styles/default.min.css'>
+<script src='http://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.0.3/highlight.min.js'></script>
+<h1>LuKOS Kernel Functions</h1>
 
 <p>This microkernel will provide the classic bare minimum functions of a microkernel, plus some supporting functions which will be described later. </p>
 
-<h2 id="primary-functions">Primary Functions</h2>
+<h2>Primary Functions</h2>
 
-<h3 id="process-management-pm">Process Management (PM)</h3>
+<h3>Process Management (PM)</h3>
 
 <p>The kernel will provide the capability to start a process in a virtual memory space and maintain the processes's threads of execution. It will also provide scheduling to these processes and threads. The kernel will provide a mechanism to duplicate processes with all their thread states. See the <a href="120-process-model.md.html">Process Management</a> section.</p>
 
-<h3 id="virtual-memory-management-vmm">Virtual Memory Management (VMM)</h3>
+<h3>Virtual Memory Management (VMM)</h3>
 
 <p>The kernel will provide the capability to map/unmap virtual memory to support processes and other services in userland. See the <a href="110-virtual-memory.md.html">Virtual Memory</a> section.</p>
 
-<h3 id="inter-process-communication-managementipcm">Inter-Process Communication Management(IPCM)</h3>
+<h3>Inter-Process Communication Management(IPCM)</h3>
 
 <p>The kernel will provide the capability to communicate between processes in different virtual memory address spaces. See the <a href="130-ipc-model.md.html">IPC Model</a> section.</p>
 
-<h3 id="interrupt-management-intm">Interrupt Management (INTM)</h3>
+<h3>Interrupt Management (INTM)</h3>
 
 <p>The kernel will provide the capability to register for, receive, acknowledge, and deliver interrupts to processes. See the <a href="140-interrupt-management.md.html">Interrupt Management</a> section. </p>
 </html>
