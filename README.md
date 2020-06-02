@@ -16,3 +16,7 @@ Documentation for what I've done is a work in progress. Start with the [000-read
 
 ## License
 Make note of the license for this project in the [implementation directory.](./implementation/LICENSE.txt).
+
+## Some Screenshots and Stuff
+![Demo of Terminal Server and ROMFS Server on QEMU](./design/img/demo.gif)
+
