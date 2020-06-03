@@ -28,8 +28,35 @@ romfs_hdr_t *romfs_load(void *base)
 	return hdr;
 
 }
+struct file_finder_helper
+{
+	char *name;
+	void *base;
+	uint32_t len;
+};
+static int file_finder(char *name, void *base, uint32_t length, void *arg)
+{
+	struct file_finder_helper *hlp = (struct file_finder_helper*)arg;
+	if(strcmp(name, hlp->name) == 0)
+	{
+		hlp->base = base;
+		hlp->len = length;
+	}
 
+}
 
+int romfs_file_find(romfs_hdr_t *hdr, char *name, void **base, uint32_t *len)
+{
+	struct file_finder_helper hlp = {name, NULL, 0};
+	
+	romfs_iterate_files(hdr, file_finder, &hlp);
+	
+	*base = hlp.base;
+	*len = hlp.len;
+	
+	return (hlp.len != 0)?0:-1;
+
+}
 void romfs_iterate_files(romfs_hdr_t *hdr, romfs_file_iter_t iter, void *arg)
 {
 	char *end_hdr = (char*)(size_t)hdr + 16;

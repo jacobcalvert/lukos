@@ -37,6 +37,9 @@ romfs_hdr_t *romfs_load(void *base);
  */
 void romfs_iterate_files(romfs_hdr_t *hdr, romfs_file_iter_t iter, void *arg);
 
-
-
+/*
+ * get the file!
+ * returns 0 if OK, non-zero otherwise
+ */
+int romfs_file_find(romfs_hdr_t *hdr, char *name, void **base, uint32_t *len);
 #endif

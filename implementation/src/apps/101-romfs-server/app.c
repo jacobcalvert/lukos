@@ -3,13 +3,17 @@
 #include <interfaces/userspace/device.h>
 #include <interfaces/userspace/ipc.h>
 #include <interfaces/userspace/schedule.h>
+
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdlib.h>
+
 #include <libc-glue.h>
 #include <romfs.h>
 #include <cli.h>
 #include <log.h>
+
+#define PRINTABLE_CHAR(c)			( ((c) > (char)32) && ((c) < (char)127))?(c):'.'
 
 static bool rx_char(char *c);
 static bool tx_char(char c);
@@ -49,6 +53,7 @@ int fs_list_iter(char *name, void *base, uint32_t length, void *arg);
 static int log_show(cli_t *intf, cli_list_t *wildcards, void *user);
 static int cmdlog_clear(cli_t *intf, cli_list_t *wildcards, void *user);
 static int fs_list(cli_t *intf, cli_list_t *wildcards, void *user);
+static int fs_dump_N(cli_t *intf, cli_list_t *wildcards, void *user);
 romfs_hdr_t *hdr;
 int main(void *arg)
 {
@@ -114,17 +119,52 @@ cli_node_t * build_root()
 	cli_node_t *root = cli_node_create(NULL, NULL, NULL);
 	
 	cli_node_t *log = cli_node_create("log", "perform actions on the log", NULL);
+	cli_node_t *fs = cli_node_create("fs", "perform filesystem actions", NULL);
+	cli_node_t *fs_dump = cli_node_create("dump", "dump the contents of a given file", NULL);
+	
 	cli_node_add_child(root, log);
 	cli_node_add_child(log, cli_node_create("show", "show the log", log_show));
 	cli_node_add_child(log, cli_node_create("clear", "clear the log", cmdlog_clear));
 	
-	cli_node_t *fs = cli_node_create("fs", "perform filesystem actions", NULL);
-	cli_node_add_child(root, fs);
-	cli_node_add_child(fs, cli_node_create("list", "list the files in the filesystem", fs_list));
 
+	cli_node_add_child(root, fs);	
+	cli_node_add_child(fs, cli_node_create("list", "list the files in the filesystem", fs_list));
+	cli_node_add_child(fs, fs_dump);
+	cli_node_add_child(fs_dump, cli_node_create(CLI_MATCH_ANY, "the file name to dump", fs_dump_N));
+	
 	return root;
 }
+int fs_dump_N(cli_t *intf, cli_list_t *wildcards, void *user)
+{
+	char *fname = NULL;
+	if(cli_list_item_get(wildcards, &fname))
+	{
+		uint32_t len;
+		char *base = NULL;
+		if(romfs_file_find(hdr, fname, (void**) &base, &len) == 0)
+		{
+			uint32_t idx = 0;
+			while(idx < len)
+			{
+				
+				cli_printf(intf, "\r\n%02x %02x %02x %02x %02x %02x %02x | %c %c %c %c %c %c %c %c", base[idx], base[idx+1], base[idx+2], base[idx+3], base[idx+4], base[idx+5], base[idx+6], base[idx+7],
+					 PRINTABLE_CHAR(base[idx]), PRINTABLE_CHAR(base[idx+1]), PRINTABLE_CHAR(base[idx+2]), PRINTABLE_CHAR(base[idx+3]), PRINTABLE_CHAR(base[idx+4]), PRINTABLE_CHAR(base[idx+5]), PRINTABLE_CHAR(base[idx+6]), 
+					 PRINTABLE_CHAR(base[idx+7]));
+				idx += 8;
+			}
+		}
+		else
+		{
+			cli_printf(intf, "\r\n--- couldn't find '%s' ---\r\n", fname);
+		}
+		
+	}
+	else
+	{
+		cli_printf(intf, "\r\n--- no filename supplied ---\r\n");
+	}
 
+}
 int log_show(cli_t *intf, cli_list_t *wildcards, void *user)
 {
 	char *log = log_get();
