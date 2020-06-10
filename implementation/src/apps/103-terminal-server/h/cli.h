@@ -59,6 +59,8 @@ typedef struct cli_options
 
 }cli_options_t;
 
+void cli_puts(cli_t *cli, char *str);
+
 
 /**
  * create a cli interface object

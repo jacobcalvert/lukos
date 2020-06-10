@@ -24,6 +24,7 @@ The Virtual Address upper bound for Address Spaces in this archtecture is 0xFFFF
 These are the calls defined for use by the kernel. 
 ```c
 
+
 /**
  * initialize the virtual memory manager
  */
@@ -37,12 +38,27 @@ address_space_t *vmm_address_space_create(void);
 
 /**
  * create a region in this address space of size (len) and properties (prop) and return the resulting VA in that address space
- * @param as	the address space
- * @param len	the len in bytes
- * @param prop	the props
- * @return the VA in the AS or NULL if failed (or won't do)
+ * use this when we don't care where the VA is going to be
+ * @param as		the address space
+ * @param len		the len in bytes
+ * @param prop		the props
+ * @param vadest	the returned VA
+ * @return 0 on OK != 0 on failure
  */
-void *vmm_address_space_region_create(address_space_t *as, size_t len, address_space_region_prop_t prop); 
+ 
+int vmm_address_space_region_create_auto(address_space_t *as, size_t len, address_space_region_prop_t prop, void **vadest);
+
+/**
+ * create a region in this address space of size (len) and properties (prop) at the specified VA
+ * use this when we DO care where the VA is going to be
+ * @param as		the address space
+ * @param len		the len in bytes
+ * @param vadest	where the base of the regions should be
+ * @param prop		the props
+ * @return 0 on OK != 0 on failure
+ */
+int vmm_address_space_region_create(address_space_t *as, void *vadest, size_t len, address_space_region_prop_t prop); 
+ 
 
 /**
  * copy some data from kernel space into this AS
@@ -52,6 +68,7 @@ void *vmm_address_space_region_create(address_space_t *as, size_t len, address_s
  * @param len			the number of bytes
  */
 void vmm_address_space_copy_in(address_space_t *as, void *vakernel, void *vadest, size_t len);
+
 
 ```
 

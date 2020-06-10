@@ -52,7 +52,7 @@ struct cli_list
 
 static cli_node_t* cli_parse_down(cli_t *cli);
 
-static void cli_puts(cli_t *cli, char *str);
+
 static void cli_end_user_func(cli_t *cli);
 
 static char *cli_token_get(char *str, char *token);
